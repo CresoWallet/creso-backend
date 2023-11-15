@@ -2,10 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config";
 import AppError from "../../errors/app";
-import { prisma } from "../../services/prisma";
+import { prisma, saveSmartWalletInDatabase } from "../../services/prisma";
 import bcrypt from 'bcrypt'
-import { createEOAWallet } from "../../services/ethers";
+import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
+import { IEncryptedData } from "../../utils/encrpt";
 
 export class AuthController {
 
@@ -13,6 +14,7 @@ export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { username, email, password } = req.body;
+      const network = "ethereum"
       if (!username || !email || !password) {
         throw new AppError("Missing Fields", 404);
         //return new NextResponse('Missing Fields', { status: 400 })
@@ -48,7 +50,21 @@ export class AuthController {
       }
 
       //saving wallet to database
-      await saveWalletInDatabase(saveWalletPayload)
+      const savedWallet = await saveWalletInDatabase(saveWalletPayload)
+
+      const createdSmartWallet = await createAAWallet(savedWallet.privateKey as IEncryptedData, network)
+
+
+      const saveWSmartalletPayload = {
+        userId: user.id,
+        walletName: "main",
+        walletId: savedWallet.id,
+        wallet: createdSmartWallet
+      }
+
+      //saving wallet to database
+      const savedSmartWallet = await saveSmartWalletInDatabase(saveWSmartalletPayload)
+
 
 
       res.status(200).send(user);
