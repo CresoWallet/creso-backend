@@ -84,26 +84,46 @@ export class AuthController {
         throw new Error("invalid credentials")
       }
 
+      const payload = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      }
+
       const token = jwt.sign(
         {
-          payload: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-          },
+          payload
         },
         JWT_SECRET,
         { expiresIn: "1d" }
       );
 
 
-      res.status(200).send({ token });
+      res.status(200).send({ token, user: payload });
 
     } catch (err: any) {
       next(err)
     }
 
   }
+
+
+  public async authenticate(req: Request, res: Response) {
+    try {
+
+      if (!req.user) {
+        throw new Error("not authenticated")
+      }
+
+      return res.status(200).send({ user: req.user });
+
+    } catch (error) {
+      res.status(500).send({
+        message: "error",
+        error: error,
+      });
+    }
+  };
 
 
 
