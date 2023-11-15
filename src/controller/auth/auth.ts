@@ -3,18 +3,16 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config";
 import AppError from "../../errors/app";
 import { prisma, saveSmartWalletInDatabase } from "../../services/prisma";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
 import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData } from "../../utils/encrpt";
 
 export class AuthController {
-
-
   public async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { username, email, password } = req.body;
-      const network = "ethereum"
+      const network = "goerli";
       if (!username || !email || !password) {
         throw new AppError("Missing Fields", 404);
         //return new NextResponse('Missing Fields', { status: 400 })
@@ -22,12 +20,12 @@ export class AuthController {
 
       const exist = await prisma.user.findUnique({
         where: {
-          email
-        }
+          email,
+        },
       });
 
       if (exist) {
-        throw new Error('Email already exists')
+        throw new Error("Email already exists");
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -36,48 +34,44 @@ export class AuthController {
         data: {
           username,
           email,
-          password: hashedPassword
-        }
+          password: hashedPassword,
+        },
       });
-
       // Create a new wallet
-      const createdWallet = createEOAWallet()
+      const createdWallet = createEOAWallet();
 
       const saveWalletPayload = {
         userId: user.id,
         walletName: "main",
-        wallet: createdWallet
-      }
+        wallet: createdWallet,
+      };
 
       //saving wallet to database
-      const savedWallet = await saveWalletInDatabase(saveWalletPayload)
+      const savedWallet = await saveWalletInDatabase(saveWalletPayload);
 
-      const createdSmartWallet = await createAAWallet(savedWallet.privateKey as IEncryptedData, network)
-
+      const createdSmartWallet = await createAAWallet(
+        savedWallet.privateKey as IEncryptedData,
+        network
+      );
 
       const saveWSmartalletPayload = {
         userId: user.id,
-        walletName: "main",
+        walletName: "Smart Wallet",
         walletId: savedWallet.id,
-        wallet: createdSmartWallet
-      }
+        wallet: createdSmartWallet,
+      };
 
       //saving wallet to database
-      const savedSmartWallet = await saveSmartWalletInDatabase(saveWSmartalletPayload)
-
-
+      await saveSmartWalletInDatabase(saveWSmartalletPayload);
 
       res.status(200).send(user);
-
     } catch (err: any) {
-      next(err)
+      next(err);
     }
   }
 
-
   public async login(req: Request, res: Response, next: NextFunction) {
     try {
-
       const { email, password } = req.body;
       if (!email || !password) {
         throw new AppError("Missing Fields", 404);
@@ -86,62 +80,54 @@ export class AuthController {
 
       const user = await prisma.user.findUnique({
         where: {
-          email
-        }
+          email,
+        },
       });
 
       if (!user) {
-        throw new Error("user doesn't exists")
+        throw new Error("user doesn't exists");
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        throw new Error("invalid credentials")
+        throw new Error("invalid credentials");
       }
 
       const payload = {
         id: user.id,
         username: user.username,
         email: user.email,
-      }
+      };
 
       const token = jwt.sign(
         {
-          payload
+          payload,
         },
         JWT_SECRET,
         { expiresIn: "1d" }
       );
 
-
       res.status(200).send({ token, user: payload });
-
     } catch (err: any) {
-      next(err)
+      next(err);
     }
-
   }
-
 
   public async authenticate(req: Request, res: Response) {
     try {
-
       if (!req.user) {
-        throw new Error("not authenticated")
+        throw new Error("not authenticated");
       }
 
       return res.status(200).send({ user: req.user });
-
     } catch (error) {
       res.status(500).send({
         message: "error",
         error: error,
       });
     }
-  };
-
-
+  }
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {
@@ -189,9 +175,6 @@ export class AuthController {
   //   }
   // }
 
-
-
-
   // export const authUser = async (address: string, issued_user_token: string) => {
   //   let user = await User.findOne({ publicAddress: address });
   //   if (!user) {
@@ -215,4 +198,4 @@ export class AuthController {
   //   );
 
   //   return token;
-};
+}
