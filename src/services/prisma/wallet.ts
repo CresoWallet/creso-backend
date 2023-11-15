@@ -38,7 +38,7 @@ export const getAllWallets = async (userId: string) => {
     });
 
     return {
-        wllets: result?.wallets,
+        wallets: result?.wallets,
         smartWallets: result?.smartWallets
     };
 }
