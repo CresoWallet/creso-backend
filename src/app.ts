@@ -3,12 +3,15 @@ import bodyParser from "body-parser";
 import cors from "cors";
 // import path from "path";
 import morgan from "morgan";
-import { auth ,wallet} from "./routes";
+import { auth, wallet } from "./routes";
 import { notFound, serverError } from "./middleware";
 import { morganOption, corsOptions, IN_PROD } from "./config";
+import passport from "passport";
+import session from 'express-session';
 
 export const createApp = () => {
   const app = express();
+
 
   app.use(morgan('combined', morganOption));
 
@@ -20,7 +23,11 @@ export const createApp = () => {
 
   // app.use(express.static(path.join(__dirname, "public")));
 
-  
+  app.use(session({ secret: 'your_secret', resave: true, saveUninitialized: true }));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+
   //routers
   app.get("/", (req: Request, res: Response, next: NextFunction) => {
     res.status(200).send({
