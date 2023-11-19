@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import crypto from "crypto"
 
+
 export const generateSalt = () => {
     // Use a combination of the user's ID and the current timestamp.
     // You can also add additional unique data to further ensure uniqueness.
@@ -14,3 +15,5 @@ export const generateSalt = () => {
 const generateRandomBits = (): string => {
     return crypto.randomBytes(16).toString('hex');
 }
+
+

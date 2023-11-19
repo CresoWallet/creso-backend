@@ -1,6 +1,9 @@
-import { ENCRYPTION_KEY } from "../constant";
 import crypto from 'crypto'
+import jwt from "jsonwebtoken";
 import { generateSalt } from "./wallet";
+import { JWT_SECRET } from "../config";
+import { ENCRYPTION_KEY } from "../constant";
+import { IAuthUser } from '../types';
 
 export interface IEncryptedData {
     [key: string]: any;
@@ -43,4 +46,15 @@ export function decryptKey(IEncryptedData: IEncryptedData): string {
     decrypted += decipher.final('utf8');
 
     return decrypted;
+}
+
+
+export const generateJWT = (payload: IAuthUser) => {
+    return jwt.sign(
+        {
+            payload,
+        },
+        JWT_SECRET,
+        { expiresIn: "1d" }
+    );
 }
