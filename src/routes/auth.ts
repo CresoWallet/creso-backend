@@ -2,7 +2,6 @@ import { Router } from "express";
 import { AuthController } from "../controller/auth";
 import { authenticateJwt } from "../middleware";
 import passport from 'passport';
-import '../config/passport';
 
 const router = Router();
 const authController: AuthController = new AuthController();
@@ -18,15 +17,12 @@ router.get("/authenticate", authenticateJwt, authController.authenticate);
 
 
 // Twitter Auth Route
-router.get('/twitter', passport.authenticate('twitter'));
+router.get('/auth/twitter', passport.authenticate('twitter'));
 
 // Twitter Auth Callback Route
-router.get('/twitter/callback',
-    passport.authenticate('twitter', { failureRedirect: '/login' }),
-    (req, res) => {
-        // Successful authentication, redirect home or another page
-        res.redirect('/');
-    }
+router.get('/auth/twitter/callback',
+    passport.authenticate('twitter', { failureRedirect: '/login?error=twiiter' }),
+    authController.loginTwitter
 );
 
 export { router as auth };

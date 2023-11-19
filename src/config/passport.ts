@@ -1,21 +1,17 @@
 import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { prisma } from '../services/prisma';
-import { TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '../constant/auth';
+import { TWITTER_CALLBACK, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '../constant';
+
 
 
 passport.use(new TwitterStrategy({
     consumerKey: TWITTER_CONSUMER_KEY,
     consumerSecret: TWITTER_CONSUMER_SECRET,
-    callbackURL: "http://localhost:8080/api/twitter/callback"
+    callbackURL: TWITTER_CALLBACK,
+    includeEmail: true
 },
     async (token, tokenSecret, profile, done) => {
-        console.log("token")
-        console.log(token)
-        console.log("tokenSecret")
-        console.log(tokenSecret)
-        console.log("profile")
-        console.log(profile)
         try {
             // Check if a user with this Twitter ID already exists
             let user = await prisma.user.findUnique({
@@ -24,13 +20,13 @@ passport.use(new TwitterStrategy({
 
             if (!user) {
                 // Create a new user if one doesn't exist
-                // user = await prisma.user.create({
-                //     data: {
-                //         twitterId: profile.id,
-                //         username: profile.username,
-                //         // Other fields as necessary
-                //     }
-                // });
+                user = await prisma.user.create({
+                    data: {
+                        twitterId: profile.id,
+                        username: profile.username,
+                        email: profile._json.email
+                    }
+                });
             }
 
             done(null, user);
@@ -41,11 +37,14 @@ passport.use(new TwitterStrategy({
 ));
 
 passport.serializeUser((user: any, done) => {
+    console.log("serializeUser: " + user)
+
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id: string, done) => {
     try {
+        console.log("deserializeUser: " + id)
         const user = await prisma.user.findUnique({ where: { id } });
         done(null, user);
     } catch (error) {

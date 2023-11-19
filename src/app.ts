@@ -8,6 +8,7 @@ import { notFound, serverError } from "./middleware";
 import { morganOption, corsOptions, IN_PROD } from "./config";
 import passport from "passport";
 import session from 'express-session';
+import './config/passport';
 
 export const createApp = () => {
   const app = express();
@@ -23,7 +24,12 @@ export const createApp = () => {
 
   // app.use(express.static(path.join(__dirname, "public")));
 
-  app.use(session({ secret: 'your_secret', resave: true, saveUninitialized: true }));
+  app.use(session({
+    secret: 'my serect dudee',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+  }));
   app.use(passport.initialize());
   app.use(passport.session());
 

@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../../config";
 import AppError from "../../errors/app";
 import { prisma, saveSmartWalletInDatabase } from "../../services/prisma";
 import bcrypt from "bcrypt";
 import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
-import { IEncryptedData } from "../../utils/encrpt";
+import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
@@ -42,7 +40,7 @@ export class AuthController {
 
       const saveWalletPayload = {
         userId: user.id,
-        walletName: "main",
+        walletName: "main_wallet",
         wallet: createdWallet,
       };
 
@@ -56,7 +54,7 @@ export class AuthController {
 
       const saveWSmartalletPayload = {
         userId: user.id,
-        walletName: "Smart Wallet",
+        walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,
       };
@@ -84,9 +82,10 @@ export class AuthController {
         },
       });
 
-      if (!user) {
+      if (!user || !user.password) {
         throw new Error("user doesn't exists");
       }
+
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -97,16 +96,9 @@ export class AuthController {
       const payload = {
         id: user.id,
         username: user.username,
-        email: user.email,
       };
 
-      const token = jwt.sign(
-        {
-          payload,
-        },
-        JWT_SECRET,
-        { expiresIn: "1d" }
-      );
+      const token = generateJWT(payload)
 
       res.status(200).send({ token, user: payload });
     } catch (err: any) {
@@ -114,6 +106,33 @@ export class AuthController {
     }
   }
 
+  public async loginTwitter(req: Request, res: Response) {
+    try {
+      console.log("logong twitter")
+      const user = req.user
+      console.log(user)
+      if (!user) {
+        throw new Error("")
+      }
+
+      const payload = {
+        id: user.id,
+        username: user.username,
+      };
+
+      const token = generateJWT(payload)
+
+      res.cookie('jwt', token); // Sets it as a cookie
+      res.redirect('http://localhost:3000/verify?token='+token); // Redirect to the frontend
+
+      
+    } catch (error) {
+      res.status(500).send({
+        message: "error",
+        error: error,
+      });
+    }
+  }
   public async authenticate(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -128,6 +147,8 @@ export class AuthController {
       });
     }
   }
+
+
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {
