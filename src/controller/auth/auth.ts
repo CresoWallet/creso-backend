@@ -6,10 +6,9 @@ import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 import { CLIENT_URL } from "../../config";
-import { AUTH_TOKEN } from "../../constant";
+import { AUTH_TOKEN, isProd } from "../../constant";
 import { generatedOTP } from "../../utils/generateOTP";
 import { getMailOptions, getTransporter } from "../../services/email";
-
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config";
 
@@ -112,8 +111,8 @@ export class AuthController {
       //isProd
       res.cookie(AUTH_TOKEN, token, {
         httpOnly: false, // The cookie is not accessible via JavaScript
-        secure: true, // Cookie is sent over HTTPS only
-        sameSite: "none", // Cookie is not sent with cross-site requests
+        secure: isProd ? true : false, // Cookie is sent over HTTPS only
+        sameSite: isProd ? 'none' : 'lax', // Cookie is not sent with cross-site requests
         maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
 
@@ -141,7 +140,15 @@ export class AuthController {
 
       const token = generateJWT(payload);
 
-      res.cookie(AUTH_TOKEN, token); // Sets it as a cookie
+      const tokenExpiryTime = 24 * 60 * 60 * 60;
+
+      res.cookie(AUTH_TOKEN, token,
+        {
+          httpOnly: false, // The cookie is not accessible via JavaScript
+          secure: isProd ? true : false, // Cookie is sent over HTTPS only
+          sameSite: isProd ? 'none' : 'lax', // Cookie is not sent with cross-site requests
+          maxAge: tokenExpiryTime, // Set the cookie's expiration time
+        }); // Sets it as a cookie
       res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
     } catch (error) {
       res.status(500).send({

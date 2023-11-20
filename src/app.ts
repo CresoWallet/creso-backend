@@ -5,9 +5,11 @@ import cors from "cors";
 import morgan from "morgan";
 import { auth, wallet } from "./routes";
 import { notFound, serverError } from "./middleware";
-import { morganOption, IN_PROD } from "./config";
+import { morganOption, IN_PROD, CLIENT_URL } from "./config";
 import passport from "passport";
 import session from "express-session";
+import cookieParser from 'cookie-parser'
+
 import "./config/passport";
 
 export const createApp = () => {
@@ -17,12 +19,12 @@ export const createApp = () => {
 
   //config
   app.use(cors({
-    origin: 'https://creso-wallet.vercel.app', // Client's URL
+    origin: CLIENT_URL, // Client's URL
     credentials: true
   }));  //app.use(express.json());
   app.use(bodyParser.urlencoded({ limit: "50mb", extended: false }));
   app.use(bodyParser.json({ limit: "50mb" }));
-
+  app.use(cookieParser()); 
   // app.use(express.static(path.join(__dirname, "public")));
 
   app.use(
