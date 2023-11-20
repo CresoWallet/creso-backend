@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { getAllWallets, prisma, saveSmartWalletInDatabase, saveWalletInDatabase } from "../../services/prisma";
+import { getAllWallets, getMainWallet, prisma, saveSmartWalletInDatabase, saveWalletInDatabase } from "../../services/prisma";
 import { ITransferPayload, createAAWallet, createEOAWallet, getHistroy, transfer, transferAA } from "../../services/ethers";
 // import AppError from "../../errors/app";
-import { IEncryptedData } from "../../utils/encrpt";
+import { IEncryptedData, decryptKey, encryptKeyWithPassword } from "../../utils/encrpt";
 
 
 export class WalletController {
@@ -16,6 +16,41 @@ export class WalletController {
             const wallets = await getAllWallets(req.user.id)
 
             return res.status(200).send(wallets)
+
+        } catch (err: any) {
+            next(err)
+        }
+    }
+    public async backupWallet(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (!req.user) {
+                throw new Error("error")
+            }
+            const { passkey } = req.body
+
+
+            const wallet = await getMainWallet(req.user.id)
+            if (!wallet) throw new Error("no main wallet")
+            const walletKey = decryptKey(wallet.privateKey as IEncryptedData)
+
+            const encrptedFile = await encryptKeyWithPassword(walletKey, passkey)
+
+            // Create a file to download
+            // const filePath = path.join(__dirname, 'creso_backup.txt');
+            // fs.writeFileSync(filePath, JSON.stringify(encrptedFile));
+
+            // Send file
+            // res.download(filePath, 'creso_backup.txt', (err) => {
+            //     if (err) {
+            //         // Handle error
+            //         console.error(err);
+            //         res.status(500).send('Error in file download');
+            //     }
+            //     // Delete the file after sending
+            //     fs.unlinkSync(filePath);
+            // });
+
+            return res.status(200).send(encrptedFile)
 
         } catch (err: any) {
             next(err)

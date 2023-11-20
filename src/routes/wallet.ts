@@ -7,6 +7,7 @@ const walletController: WalletController = new WalletController();
 
 router.get("/wallet", authenticateJwt, walletController.getWallet);
 
+router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
 
 router.post("/create/wallet", authenticateJwt, walletController.createWallet);

@@ -16,6 +16,21 @@ type ISaveSmartWalletDataPlayload = {
 };
 
 
+export const getMainWallet = async (userId: string) => {
+    return await prisma.wallet.findFirst({
+        where: {
+            userId: userId,
+            // walletName: "main_wallet"
+        },
+
+    });
+
+    // return {
+    //     wallets: result?.wallets,
+    //     smartWallets: result?.smartWallets
+    // };
+}
+
 export const getAllWallets = async (userId: string) => {
     const result = await prisma.user.findUnique({
         where: {
