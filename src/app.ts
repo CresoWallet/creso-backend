@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 // import path from "path";
 import morgan from "morgan";
-import { auth, user, wallet } from "./routes";
+import { auth, wallet } from "./routes";
 import { notFound, serverError } from "./middleware";
 import { morganOption, corsOptions, IN_PROD } from "./config";
 import passport from "passport";
@@ -45,7 +45,6 @@ export const createApp = () => {
 
   app.use("/api", auth);
   app.use("/api", wallet);
-  app.use("/api", user);
 
   // app.get('*', (req, res) => {
   //   res.sendFile(path.join(__dirname, 'public', 'index.html'));

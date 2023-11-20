@@ -7,6 +7,11 @@ import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 import { CLIENT_URL } from "../../config";
 import { AUTH_TOKEN } from "../../constant";
+import { generatedOTP } from "../../utils/generateOTP";
+import { getMailOptions, getTransporter } from "../../services/email";
+
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../../config";
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
@@ -97,18 +102,21 @@ export class AuthController {
       const payload = {
         id: user.id,
         username: user.username,
-        email: user.email || ""
+        email: user.email || "",
       };
 
-      const token = generateJWT(payload)
+      const token = generateJWT(payload);
 
-      const tokenExpiryTime = 24 * 60 * 60 * 60
+      const tokenExpiryTime = 24 * 60 * 60 * 60;
+
       res.cookie(AUTH_TOKEN, token, {
-        httpOnly: true,   // The cookie is not accessible via JavaScript
-        secure: false,     // Cookie is sent over HTTPS only
-        sameSite: 'none', // Cookie is not sent with cross-site requests
-        maxAge: tokenExpiryTime // Set the cookie's expiration time
+        httpOnly: true, // The cookie is not accessible via JavaScript
+        secure: false, // Cookie is sent over HTTPS only
+        sameSite: "none", // Cookie is not sent with cross-site requests
+        maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
+
+      // res.cookie("house_user", "token");
       // res.status(200).send("Logged in successfully");
 
       res.status(200).send({ token, user: payload });
@@ -119,23 +127,21 @@ export class AuthController {
 
   public async loginTwitter(req: Request, res: Response) {
     try {
-      const user = req.user
+      const user = req.user;
       if (!user) {
-        throw new Error("")
+        throw new Error("");
       }
 
       const payload = {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
       };
 
-      const token = generateJWT(payload)
+      const token = generateJWT(payload);
 
       res.cookie(AUTH_TOKEN, token); // Sets it as a cookie
       res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
-
-
     } catch (error) {
       res.status(500).send({
         message: "error",
@@ -145,12 +151,11 @@ export class AuthController {
   }
   public async logout(req: Request, res: Response) {
     try {
-      res.cookie(AUTH_TOKEN, '', {
+      res.cookie(AUTH_TOKEN, "", {
         httpOnly: false,
-        expires: new Date(0)  // Set to a past date to invalidate the cookie
+        expires: new Date(0), // Set to a past date to invalidate the cookie
       });
       res.status(200).send("Logged out successfully");
-
     } catch (error) {
       res.status(500).send({
         message: "error",
@@ -173,9 +178,86 @@ export class AuthController {
     }
   }
 
+  public async sendOTPMail(req: Request, res: Response, next: NextFunction) {
+    const { email } = req.body;
 
+    const transporter = getTransporter();
 
+    const mailOptions = getMailOptions({
+      to: email as any,
+      subject: "OTP verification",
+      text: `Here is the verification code. Please copy it and verify your Email ${generatedOTP}`,
+    });
 
+    //TODO: create a encrypted token
+    const token = jwt.sign(
+      {
+        email,
+        generatedOTP,
+        expireAt: new Date().getTime() + 5 * 60000,
+      },
+      JWT_SECRET
+    );
+
+    try {
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          res.status(400).send({ message: "Error sending OTP email" });
+        } else {
+          res.status(200).send({
+            message: "A OTP mail has been sent ",
+            token: token,
+          });
+        }
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  public async verifyOTP(req: Request, res: Response, next: NextFunction) {
+    const { otp, token, email } = req.body;
+
+    try {
+      const { expireAt, generatedOTP }: any = await jwt.verify(
+        token,
+        JWT_SECRET
+      );
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw new Error("Email doesn't exists");
+      }
+
+      if (user.isEmailVerified) {
+        throw new Error("Email already verified");
+      }
+
+      if (new Date().getTime() > expireAt) {
+        res.status(400).send({ message: "OTP expired" });
+      } else if (otp === generatedOTP) {
+        user.isEmailVerified = true;
+        await prisma.user.update({
+          where: {
+            email: email,
+          },
+          data: {
+            isEmailVerified: true,
+          },
+        });
+        res.status(200).send({ message: "Email verified." });
+      } else {
+        res.status(400).send({ message: "Invalid OTP" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {

@@ -15,7 +15,6 @@ router.post("/login", authController.login);
 
 router.post("/logout", authController.logout);
 
-
 router.get("/authenticate", authenticateJwt, authController.authenticate);
 
 // Twitter Auth Route
@@ -27,5 +26,9 @@ router.get(
   passport.authenticate("twitter", { failureRedirect: "/login?error=twiiter" }),
   authController.loginTwitter
 );
+
+router.post("/sendOTP", authenticateJwt, authController.sendOTPMail);
+
+router.post("/verifyOTP", authenticateJwt, authController.verifyOTP);
 
 export { router as auth };
