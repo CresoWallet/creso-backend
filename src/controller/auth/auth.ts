@@ -110,9 +110,9 @@ export class AuthController {
       const tokenExpiryTime = 24 * 60 * 60 * 60;
 
       res.cookie(AUTH_TOKEN, token, {
-        httpOnly: true, // The cookie is not accessible via JavaScript
+        httpOnly: false, // The cookie is not accessible via JavaScript
         secure: false, // Cookie is sent over HTTPS only
-        sameSite: "none", // Cookie is not sent with cross-site requests
+        sameSite: "lax", // Cookie is not sent with cross-site requests
         maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
 
@@ -169,8 +169,17 @@ export class AuthController {
         throw new Error("not authenticated");
       }
 
-      return res.status(200).send({ user: req.user });
+      console.log("req : ", req.user.id);
+
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      console.log("user : ", user);
+
+      return res.status(200).send({ user });
     } catch (error) {
+      console.log("error : ", error);
       res.status(500).send({
         message: "error",
         error: error,
