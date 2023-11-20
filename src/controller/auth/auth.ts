@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData, generateJWT } from "../../utils/encrpt";
+import { CLIENT_URL } from "../../config";
+import { AUTH_TOKEN } from "../../constant";
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
@@ -86,7 +88,6 @@ export class AuthController {
         throw new Error("user doesn't exists");
       }
 
-
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
@@ -96,9 +97,19 @@ export class AuthController {
       const payload = {
         id: user.id,
         username: user.username,
+        email: user.email || ""
       };
 
       const token = generateJWT(payload)
+
+      const tokenExpiryTime = 24 * 60 * 60 * 60
+      res.cookie(AUTH_TOKEN, token, {
+        httpOnly: true,   // The cookie is not accessible via JavaScript
+        secure: false,     // Cookie is sent over HTTPS only
+        sameSite: 'none', // Cookie is not sent with cross-site requests
+        maxAge: tokenExpiryTime // Set the cookie's expiration time
+      });
+      // res.status(200).send("Logged in successfully");
 
       res.status(200).send({ token, user: payload });
     } catch (err: any) {
@@ -108,9 +119,7 @@ export class AuthController {
 
   public async loginTwitter(req: Request, res: Response) {
     try {
-      console.log("logong twitter")
       const user = req.user
-      console.log(user)
       if (!user) {
         throw new Error("")
       }
@@ -118,14 +127,30 @@ export class AuthController {
       const payload = {
         id: user.id,
         username: user.username,
+        email: user.email
       };
 
       const token = generateJWT(payload)
 
-      res.cookie('jwt', token); // Sets it as a cookie
-      res.redirect('http://localhost:3000/verify?token='+token); // Redirect to the frontend
+      res.cookie(AUTH_TOKEN, token); // Sets it as a cookie
+      res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
 
-      
+
+    } catch (error) {
+      res.status(500).send({
+        message: "error",
+        error: error,
+      });
+    }
+  }
+  public async logout(req: Request, res: Response) {
+    try {
+      res.cookie(AUTH_TOKEN, '', {
+        httpOnly: false,
+        expires: new Date(0)  // Set to a past date to invalidate the cookie
+      });
+      res.status(200).send("Logged out successfully");
+
     } catch (error) {
       res.status(500).send({
         message: "error",
@@ -147,6 +172,8 @@ export class AuthController {
       });
     }
   }
+
+
 
 
 

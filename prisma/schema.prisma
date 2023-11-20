@@ -11,15 +11,17 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  twitterId    String?       @unique
-  email        String?       @unique
-  username     String        @unique
-  password     String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  wallets      Wallet[]
-  smartWallets SmartWallet[]
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  twitterId          String?       @unique
+  email              String?       @unique
+  username           String        @unique
+  password           String?
+  isEmailVerified    Boolean       @default(false)
+  registrationMethod String        @default("email") // Options: "email", "twitter", "apple"
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  wallets            Wallet[]
+  smartWallets       SmartWallet[]
 }
 
 model Wallet {

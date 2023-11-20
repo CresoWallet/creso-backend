@@ -24,7 +24,8 @@ passport.use(new TwitterStrategy({
                     data: {
                         twitterId: profile.id,
                         username: profile.username,
-                        email: profile._json.email
+                        email: profile._json.email,
+                        registrationMethod: "twitter"
                     }
                 });
             }
@@ -37,14 +38,11 @@ passport.use(new TwitterStrategy({
 ));
 
 passport.serializeUser((user: any, done) => {
-    console.log("serializeUser: " + user)
-
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id: string, done) => {
     try {
-        console.log("deserializeUser: " + id)
         const user = await prisma.user.findUnique({ where: { id } });
         done(null, user);
     } catch (error) {
