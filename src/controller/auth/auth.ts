@@ -109,10 +109,11 @@ export class AuthController {
 
       const tokenExpiryTime = 24 * 60 * 60 * 60;
 
+      //isProd
       res.cookie(AUTH_TOKEN, token, {
         httpOnly: false, // The cookie is not accessible via JavaScript
-        secure: false, // Cookie is sent over HTTPS only
-        sameSite: "lax", // Cookie is not sent with cross-site requests
+        secure: true, // Cookie is sent over HTTPS only
+        sameSite: "none", // Cookie is not sent with cross-site requests
         maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
 
