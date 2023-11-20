@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { auth, wallet } from "./routes";
 import { notFound, serverError } from "./middleware";
-import { morganOption, corsOptions, IN_PROD } from "./config";
+import { morganOption, IN_PROD } from "./config";
 import passport from "passport";
 import session from "express-session";
 import "./config/passport";
