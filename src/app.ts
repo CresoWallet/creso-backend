@@ -16,8 +16,10 @@ export const createApp = () => {
   app.use(morgan("combined", morganOption));
 
   //config
-  app.use(cors(corsOptions));
-  //app.use(express.json());
+  app.use(cors({
+    origin: 'https://creso-wallet.vercel.app', // Client's URL
+    credentials: true
+  }));  //app.use(express.json());
   app.use(bodyParser.urlencoded({ limit: "50mb", extended: false }));
   app.use(bodyParser.json({ limit: "50mb" }));
 
