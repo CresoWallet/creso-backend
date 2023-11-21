@@ -112,7 +112,7 @@ export class AuthController {
       res.cookie(AUTH_TOKEN, token, {
         httpOnly: false, // The cookie is not accessible via JavaScript
         secure: isProd ? true : false, // Cookie is sent over HTTPS only
-        sameSite: isProd ? 'none' : 'lax', // Cookie is not sent with cross-site requests
+        sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
         maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
 
@@ -142,13 +142,12 @@ export class AuthController {
 
       const tokenExpiryTime = 24 * 60 * 60 * 60;
 
-      res.cookie(AUTH_TOKEN, token,
-        {
-          httpOnly: false, // The cookie is not accessible via JavaScript
-          secure: isProd ? true : false, // Cookie is sent over HTTPS only
-          sameSite: isProd ? 'none' : 'lax', // Cookie is not sent with cross-site requests
-          maxAge: tokenExpiryTime, // Set the cookie's expiration time
-        }); // Sets it as a cookie
+      res.cookie(AUTH_TOKEN, token, {
+        httpOnly: false, // The cookie is not accessible via JavaScript
+        secure: isProd ? true : false, // Cookie is sent over HTTPS only
+        sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
+        maxAge: tokenExpiryTime, // Set the cookie's expiration time
+      }); // Sets it as a cookie
       res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
     } catch (error) {
       res.status(500).send({
@@ -181,6 +180,12 @@ export class AuthController {
 
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
+        select: {
+          isEmailVerified: true,
+          email: true,
+          username: true,
+          id: true,
+        },
       });
 
       console.log("user : ", user);
