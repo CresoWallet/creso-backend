@@ -7,12 +7,12 @@ import { IEncryptedData, decryptKey } from "../../utils/encrpt";
 
 
 
-export type IProvider = "ethereum" | "goerli"
+export type IProviderName = "ethereum" | "goerli"
 
 // export const etherProvider = new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.GOERLI);
 export const stackupProvider = new ethers.providers.JsonRpcProvider(BUNDLER_RPC_URL);
 
-export const getProvider = (network: IProvider) => {
+export const getProvider = (network: IProviderName) => {
     switch (network) {
         case "goerli":
             return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.GOERLI)
@@ -23,19 +23,19 @@ export const getProvider = (network: IProvider) => {
     }
 }
 
-export const getEntryPointAddress = (network: IProvider) => {
+export const getEntryPointAddress = (network: IProviderName) => {
     return ENTRY_POINT_ADDRESSS
 }
-export const getWalletFactoryAddress = (network: IProvider) => {
+export const getWalletFactoryAddress = (network: IProviderName) => {
     return CL_WALLETFACTORY_ADDRESS
 }
-export const getBundlerRPC = (network: IProvider) => {
+export const getBundlerRPC = (network: IProviderName) => {
     return BUNDLER_RPC_URL
 }
 
 
 
-export const getSignerWallet = (pk: IEncryptedData, providerName: IProvider) => {
+export const getSignerWallet = (pk: IEncryptedData, providerName: IProviderName) => {
     const privateKey = decryptKey(pk)
     const provider = getProvider(providerName)
     return new ethers.Wallet(privateKey, provider);
