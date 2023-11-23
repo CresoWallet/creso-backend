@@ -184,7 +184,7 @@ export class WalletController {
                 throw new Error("error")
             }
 
-            const { type, sendTo, amount, from, network } = req.body
+            const { type, sendTo, amount, from, network, standard, tokenAddress } = req.body
 
             //validation
             if (!from) {
@@ -196,7 +196,9 @@ export class WalletController {
                 sendTo,
                 amount,
                 from,
-                network
+                network,
+                standard,
+                tokenAddress
             }
 
             const receipt = type === "EOA" ? await transfer(payload) : await transferAA(payload)
@@ -204,21 +206,9 @@ export class WalletController {
             return res.status(200).send(receipt)
 
 
-            // if (type === "EOA") {
-
-            //     const receipt = await transfer(payload)
-
-            //     return res.status(200).send(receipt)
-
-            // } else if (type === "AA") {
-
-            //     const receipt = await transferAA(payload)
-
-            //     return res.status(200).send(receipt)
-
-            // } else {
-            //     throw new AppError("invalid type", 401)
-            // }
+            // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)} 
+            // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
+            // } else {throw new AppError("invalid type", 401)] }
 
 
 

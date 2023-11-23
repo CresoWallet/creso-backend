@@ -1,6 +1,6 @@
 import { generateSalt } from "../../utils/wallet"
 import { IEncryptedData } from "../../utils/encrpt"
-import { IProvider, getSignerWallet, getWalletFactoryContract } from "./main"
+import { IProviderName, getSignerWallet, getWalletFactoryContract } from "./main"
 import { Wallet, ethers } from 'ethers';
 
 
@@ -23,7 +23,7 @@ export const createEOAWallet = (): IWallet => {
 
 
 }
-export const createAAWallet = async (privateKey: IEncryptedData, network: IProvider): Promise<IWallet> => {
+export const createAAWallet = async (privateKey: IEncryptedData, network: IProviderName): Promise<IWallet> => {
 
     const salt = generateSalt()
 
@@ -46,7 +46,7 @@ export const createAAWallet = async (privateKey: IEncryptedData, network: IProvi
 }
 
 
-export const getHistroy = async (address: string, network: IProvider): Promise<ethers.providers.TransactionResponse[]> => {
+export const getHistroy = async (address: string, network: IProviderName): Promise<ethers.providers.TransactionResponse[]> => {
 
     let etherscanProvider = new ethers.providers.EtherscanProvider(network);
 

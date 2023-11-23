@@ -1,10 +1,11 @@
 
-import { ethers } from "ethers";
-import { IProvider, getBundlerRPC, getEntryPointAddress, getProvider, getSignerWallet, getWalletContract, getWalletFactoryAddress } from "./main";
+import { Contract, ethers } from "ethers";
+import { IProviderName, getBundlerRPC, getEntryPointAddress, getProvider, getSignerWallet, getWalletContract, getWalletFactoryAddress } from "./main";
 import { Client, Presets } from "userop";
 import { getSmartWalletByAddress } from "../prisma/wallet";
 import { IEncryptedData } from "../../utils/encrpt";
 import { prisma } from "../prisma";
+import { ERC20ABI } from "../../utils/ethers";
 
 
 export interface ITransferPayload {
@@ -12,11 +13,13 @@ export interface ITransferPayload {
     sendTo: string
     amount: string // The amount of ETH to send as a string, e.g., "0.1"
     from: string
-    network: IProvider
+    network: IProviderName
+    standard: "native" | "stable"
+    tokenAddress: string
 }
 
 
-export const transfer = async ({ userId, from, sendTo, amount, network }: ITransferPayload) => {
+export const transfer = async ({ userId, from, sendTo, amount, network, standard, tokenAddress }: ITransferPayload) => {
 
     //get the fromWallet
     const wallet = await prisma.wallet.findFirst({
@@ -29,26 +32,36 @@ export const transfer = async ({ userId, from, sendTo, amount, network }: ITrans
         throw new Error("couldn't find the wallet")
     }
 
-    // Create a transaction object
-    const transaction = {
-        to: sendTo,
-        value: ethers.utils.parseEther(amount)
-    };
-
     const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network)
 
+    //TODO: add some validation
+    const value = ethers.utils.parseEther(amount)
 
-    // Send the transaction
-    const txResponse = await signer.sendTransaction(transaction);
-    //TODO: if need to be more response. can send this to client side
-    // and wait for it from client side
-    const receipt = await txResponse.wait(); // Wait for the transaction to be mined
-    return receipt
+    if (standard === "stable") {
 
+        const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
+
+        const txResponse = await tokenContract.transfer(sendTo, value);
+        const receipt = await txResponse.wait(); // Wait for the transaction to be mined
+        return receipt;
+
+    } else {
+        const transaction = {
+            to: sendTo,
+            value: value
+        };
+
+        // Send the transaction
+        const txResponse = await signer.sendTransaction(transaction);
+        //TODO: if need to be more response. can send this to client side
+        // and wait for it from client side
+        const receipt = await txResponse.wait(); // Wait for the transaction to be mined
+        return receipt
+    }
 
 }
 
-export async function transferAA({ userId, from, network, amount, sendTo }: ITransferPayload) {
+export async function transferAA({ userId, from, network, amount, sendTo, standard, tokenAddress }: ITransferPayload) {
 
     try {
 
@@ -57,6 +70,7 @@ export async function transferAA({ userId, from, network, amount, sendTo }: ITra
         if (!wallet) throw new Error("no from wallet found")
 
         const signer = getSignerWallet(wallet.wallet.privateKey as IEncryptedData, network)
+        const value = ethers.utils.parseEther(amount);
 
 
         const simpleAccount = await Presets.Builder.SimpleAccount.init(
@@ -72,16 +86,39 @@ export async function transferAA({ userId, from, network, amount, sendTo }: ITra
             entryPoint: getEntryPointAddress(network),
         });
 
+
+
+        let txData = {
+            to: sendTo,
+            value,
+            data: "0x"
+        }
+
+        if (standard === "stable") {
+            const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
+
+            const data = tokenContract.interface.encodeFunctionData("transfer", [sendTo, value]);
+            txData.to = tokenAddress
+            txData.value = ethers.constants.Zero
+            txData.data = data
+
+            // const calls = [
+            //     {
+            //         to: tokenAddress,
+            //         value: ethers.constants.Zero,
+            //         data: data
+            //     }
+            // ];
+        }
+
         // const target = ethers.utils.getAddress(t);
-        const value = ethers.utils.parseEther(amount);
         const res = await client.sendUserOperation(
-            simpleAccount.execute(sendTo, value, "0x"),
+            simpleAccount.execute(txData.to, txData.value, txData.data),
             {
                 onBuild: (op) => console.log("Signed UserOperation:", op),
             }
         );
         //   console.log(`UserOpHash: ${res.userOpHash}`);
-
         //   console.log("Waiting for transaction...");
         const ev = await res.wait();
         //   console.log(`Transaction hash: ${ev?.transactionHash ?? null}`);
@@ -196,7 +233,7 @@ export async function transferETHFromSmartWallet(
     from: string,
     toAddress: string,
     amount: string, // Amount in ether, e.g., '0.01' for 0.01 ETH
-    networkName: IProvider
+    networkName: IProviderName
 ): Promise<any> {
     try {
         // Initialize provider and wallet
