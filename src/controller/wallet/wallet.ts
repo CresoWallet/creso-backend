@@ -1,11 +1,34 @@
 import { NextFunction, Request, Response } from "express";
-import { getAllWallets, getMainWallet, getWallet, prisma, saveSmartWalletInDatabase, saveWalletInDatabase } from "../../services/prisma";
-import { ITransferPayload, createAAWallet, createEOAWallet, getHistroy, getSignerWallet, transfer, transferAA } from "../../services/ethers";
+import {
+  getAllWallets,
+  getMainWallet,
+  getWallet,
+  prisma,
+  saveSmartWalletInDatabase,
+  saveWalletInDatabase,
+} from "../../services/prisma";
+import {
+  ITransferPayload,
+  createAAWallet,
+  createEOAWallet,
+  getHistroy,
+  getSignerWallet,
+  transfer,
+  transferAA,
+} from "../../services/ethers";
 // import AppError from "../../errors/app";
-import { IEncryptedData, decryptKey, encryptKeyWithPassword } from "../../utils/encrpt";
-import { addGuardian, cancelRecovery, confirmRecovery, removeGuardian, startRecovery } from "../../services/ethers/recovery";
-
-
+import {
+  IEncryptedData,
+  decryptKey,
+  encryptKeyWithPassword,
+} from "../../utils/encrpt";
+import {
+  addGuardian,
+  cancelRecovery,
+  confirmRecovery,
+  removeGuardian,
+  startRecovery,
+} from "../../services/ethers/recovery";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -80,7 +103,8 @@ export class WalletController {
       if (!address || !network) {
         throw new Error("field invalid");
       }
-      const history = getHistroy(address, network);
+      const history = await getHistroy(address, network);
+
       return res.status(200).send(history);
     } catch (err: any) {
       next(err);
@@ -160,31 +184,32 @@ export class WalletController {
   }
 
   /**
-   * 
+   *
    * @param body
    * {
    * type : EOA | "AA"
    * from:
    * sendTo:
-   * amount: 
-   * network: 
+   * amount:
+   * network:
    * standard: native | stable
-   * tokenAddress: 
-   * } 
-   * @returns 
+   * tokenAddress:
+   * }
+   * @returns
    */
 
   public async makeTransfer(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) {
-        throw new Error("error")
+        throw new Error("error");
       }
 
-      const { type, sendTo, amount, from, network, standard, tokenAddress } = req.body
+      const { type, sendTo, amount, from, network, standard, tokenAddress } =
+        req.body;
 
       //validation
       if (!from) {
-        throw new Error("invalid request")
+        throw new Error("invalid request");
       }
 
       const payload: ITransferPayload = {
@@ -194,156 +219,160 @@ export class WalletController {
         from,
         network,
         standard,
-        tokenAddress
-      }
+        tokenAddress,
+      };
 
-      const receipt = type === "EOA" ? await transfer(payload) : await transferAA(payload)
+      const receipt =
+        type === "EOA" ? await transfer(payload) : await transferAA(payload);
 
-      return res.status(200).send(receipt)
+      return res.status(200).send(receipt);
 
-
-      // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)} 
+      // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)}
       // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
       // } else {throw new AppError("invalid type", 401)] }
-
-
-
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
-
-
-
-
   /**
-   * 
+   *
    * @param body
    * {
    * type : EOA | "AA"
    * sender:
    * walletAddress:
-   * network: 
-   * guardian: 
-   * } 
-   * @returns 
+   * network:
+   * guardian:
+   * }
+   * @returns
    */
   public async addGuardian(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, guardian, network } = req.body
+      const { sender, walletAddress, guardian, network } = req.body;
       if (!req.user) {
-        throw new Error("no user")
+        throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender)
+      const wallet = await getWallet(req.user.id, sender);
       if (!wallet) {
-        throw new Error("no wallet")
+        throw new Error("no wallet");
       }
-      const signerWallet = getSignerWallet(wallet.privateKey as IEncryptedData, network)
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
 
-      const tx = await addGuardian(signerWallet, walletAddress, guardian)
+      const tx = await addGuardian(signerWallet, walletAddress, guardian);
 
-      return res.status(200).send(tx)
+      return res.status(200).send(tx);
     } catch (err) {
-      next(err)
+      next(err);
     }
-
-
   }
-
 
   public async removeGuardian(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, guardian, network } = req.body
+      const { sender, walletAddress, guardian, network } = req.body;
       if (!req.user) {
-        throw new Error("no user")
+        throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender)
+      const wallet = await getWallet(req.user.id, sender);
       if (!wallet) {
-        throw new Error("no wallet")
+        throw new Error("no wallet");
       }
-      const signerWallet = getSignerWallet(wallet.privateKey as IEncryptedData, network)
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
 
-      const tx = await removeGuardian(signerWallet, walletAddress, guardian)
+      const tx = await removeGuardian(signerWallet, walletAddress, guardian);
 
-      return res.status(200).send(tx)
+      return res.status(200).send(tx);
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
   public async startRecovery(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, newOwner, network } = req.body
+      const { sender, walletAddress, newOwner, network } = req.body;
       if (!req.user) {
-        throw new Error("no user")
+        throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender)
+      const wallet = await getWallet(req.user.id, sender);
       if (!wallet) {
-        throw new Error("no wallet")
+        throw new Error("no wallet");
       }
-      const signerWallet = getSignerWallet(wallet.privateKey as IEncryptedData, network)
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
 
-      const tx = await startRecovery(signerWallet, walletAddress, newOwner)
+      const tx = await startRecovery(signerWallet, walletAddress, newOwner);
 
-      return res.status(200).send(tx)
+      return res.status(200).send(tx);
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
-  public async confirmRecovery(req: Request, res: Response, next: NextFunction) {
+  public async confirmRecovery(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const { sender, walletAddress, network } = req.body
+      const { sender, walletAddress, network } = req.body;
       if (!req.user) {
-        throw new Error("no user")
+        throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender)
+      const wallet = await getWallet(req.user.id, sender);
       if (!wallet) {
-        throw new Error("no wallet")
+        throw new Error("no wallet");
       }
-      const signerWallet = getSignerWallet(wallet.privateKey as IEncryptedData, network)
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
 
-      const tx = await confirmRecovery(signerWallet, walletAddress)
+      const tx = await confirmRecovery(signerWallet, walletAddress);
 
-      return res.status(200).send(tx)
+      return res.status(200).send(tx);
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
   public async cancelRecovery(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, network } = req.body
+      const { sender, walletAddress, network } = req.body;
       if (!req.user) {
-        throw new Error("no user")
+        throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender)
+      const wallet = await getWallet(req.user.id, sender);
       if (!wallet) {
-        throw new Error("no wallet")
+        throw new Error("no wallet");
       }
-      const signerWallet = getSignerWallet(wallet.privateKey as IEncryptedData, network)
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
 
-      const tx = await cancelRecovery(signerWallet, walletAddress)
+      const tx = await cancelRecovery(signerWallet, walletAddress);
 
-      return res.status(200).send(tx)
+      return res.status(200).send(tx);
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
   public async testApi(req: Request, res: Response, next: NextFunction) {
     try {
-   
-      return res.status(200).send({message:"test"})
+      return res.status(200).send({ message: "test" });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
-
-
-
-
 }
