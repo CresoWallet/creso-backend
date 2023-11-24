@@ -9,8 +9,6 @@ import { CLIENT_URL } from "../../config";
 import { AUTH_TOKEN, isProd } from "../../constant";
 import { generatedOTP } from "../../utils/generateOTP";
 import { getMailOptions, getTransporter } from "../../services/email";
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../../config";
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
@@ -29,7 +27,8 @@ export class AuthController {
       });
 
       if (exist) {
-        throw new Error("Email already exists");
+        // throw new Error("Email already exists");
+        throw new AppError("Email already exists", 404);
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -89,13 +88,15 @@ export class AuthController {
       });
 
       if (!user || !user.password) {
-        throw new Error("user doesn't exists");
+        // throw new Error("user doesn't exists");
+        throw new AppError("User doesn't exists", 404);
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        throw new Error("invalid credentials");
+        // throw new Error("invalid credentials");
+        throw new AppError("Invalid credentials", 404);
       }
 
       const payload = {
@@ -176,8 +177,6 @@ export class AuthController {
         throw new Error("not authenticated");
       }
 
-      console.log("req : ", req.user.id);
-
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
         select: {
@@ -187,8 +186,6 @@ export class AuthController {
           id: true,
         },
       });
-
-      console.log("user : ", user);
 
       return res.status(200).send({ user });
     } catch (error) {
@@ -201,8 +198,11 @@ export class AuthController {
   }
 
   public async sendOTPMail(req: Request, res: Response, next: NextFunction) {
-    const { email } = req.body;
+    const email = req.user?.email;
 
+    if (!email) {
+      throw new Error("Please provide a valid email!");
+    }
     const transporter = getTransporter();
 
     const mailOptions = getMailOptions({
@@ -211,24 +211,29 @@ export class AuthController {
       text: `Here is the verification code. Please copy it and verify your Email ${generatedOTP}`,
     });
 
-    //TODO: create a encrypted token
-    const token = jwt.sign(
-      {
-        email,
-        generatedOTP,
-        expireAt: new Date().getTime() + 5 * 60000,
-      },
-      JWT_SECRET
-    );
-
     try {
+      await prisma.verification.upsert({
+        where: {
+          email: email,
+        },
+        update: {
+          otp: +generatedOTP,
+          expireAt: new Date(new Date().getTime() + 5 * 60000),
+        },
+        create: {
+          email,
+          otp: +generatedOTP,
+          expireAt: new Date(new Date().getTime() + 5 * 60000),
+        },
+      });
+
+      // send email
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
           res.status(400).send({ message: "Error sending OTP email" });
         } else {
           res.status(200).send({
             message: "A OTP mail has been sent ",
-            token: token,
           });
         }
       });
@@ -238,14 +243,10 @@ export class AuthController {
   }
 
   public async verifyOTP(req: Request, res: Response, next: NextFunction) {
-    const { otp, token, email } = req.body;
+    const { otp } = req.body;
+    const email = req.user?.email;
 
     try {
-      const { expireAt, generatedOTP }: any = await jwt.verify(
-        token,
-        JWT_SECRET
-      );
-
       const user = await prisma.user.findUnique({
         where: {
           email,
@@ -256,11 +257,21 @@ export class AuthController {
         throw new Error("Email doesn't exists");
       }
 
-      if (user.isEmailVerified) {
+      if (user && user.isEmailVerified) {
         throw new Error("Email already verified");
       }
 
-      if (new Date().getTime() > expireAt) {
+      const verification = await prisma.verification.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!verification) {
+        throw new Error("Email doesn't exists");
+      }
+
+      if (new Date().getTime() > +verification.expireAt) {
         res.status(400).send({ message: "OTP expired" });
       } else if (otp === generatedOTP) {
         user.isEmailVerified = true;
