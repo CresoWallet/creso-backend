@@ -41,8 +41,6 @@ export const createAAWallet = async (privateKey: IEncryptedData, network: IProvi
         salt
     }
 
-
-
 }
 
 
@@ -51,8 +49,5 @@ export const getHistroy = async (address: string, network: IProviderName): Promi
     let etherscanProvider = new ethers.providers.EtherscanProvider(network);
 
     return await etherscanProvider.getHistory(address)
-
-
-
 
 }

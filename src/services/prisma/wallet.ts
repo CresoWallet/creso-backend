@@ -31,6 +31,19 @@ export const getMainWallet = async (userId: string) => {
     // };
 }
 
+export const getWallet = async (userId: string, address: string) => {
+    return await prisma.wallet.findFirst({
+        where: {
+            userId: userId,
+            address: address
+        },
+
+    });
+
+
+}
+
+
 export const getAllWallets = async (userId: string) => {
     const result = await prisma.user.findUnique({
         where: {
