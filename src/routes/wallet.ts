@@ -21,9 +21,9 @@ router.post("/transfer", authenticateJwt, walletController.makeTransfer);
 
 //guardian
 router.post("/add/guardian", authenticateJwt, walletController.addGuardian);
-router.post("/add/guardian", authenticateJwt, walletController.removeGuardian);
-router.post("/add/guardian", authenticateJwt, walletController.startRecovery);
-router.post("/add/guardian", authenticateJwt, walletController.confirmRecovery);
+router.post("/remove/guardian", authenticateJwt, walletController.removeGuardian);
+router.post("/start/guardian", authenticateJwt, walletController.startRecovery);
+router.post("/confirm/guardian", authenticateJwt, walletController.confirmRecovery);
 
 router.post("/test", walletController.testApi);
 
