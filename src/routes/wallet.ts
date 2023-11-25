@@ -7,7 +7,6 @@ const walletController: WalletController = new WalletController();
 
 router.get("/wallet", authenticateJwt, walletController.getWallet);
 
-router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
 router.post("/create/wallet", authenticateJwt, walletController.createWallet);
 
@@ -18,6 +17,9 @@ router.post("/history", authenticateJwt, walletController.getHistory);
 router.get("/assets/balance", authenticateJwt, walletController.getAssetBalance);
 
 router.post("/transfer", authenticateJwt, walletController.makeTransfer);
+
+
+router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
 //guardian
 router.post("/add/guardian", authenticateJwt, walletController.addGuardian);

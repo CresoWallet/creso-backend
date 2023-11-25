@@ -49,18 +49,10 @@ export function decryptKey(IEncryptedData: IEncryptedData): string {
 }
 
 
-export const generateJWT = (payload: IAuthUser) => {
-    return jwt.sign(
-        {
-            payload,
-        },
-        JWT_SECRET,
-        { expiresIn: "1d" }
-    );
-}
 
 
-export function encryptKeyWithPassword(privateKey: string, password:string): IEncryptedData {
+
+export function encryptKeyWithPassword(privateKey: string, password: string): IEncryptedData {
 
     const salt = generateSalt()
     const iv = crypto.randomBytes(16); // Initialization vector
@@ -78,4 +70,40 @@ export function encryptKeyWithPassword(privateKey: string, password:string): IEn
         tag,
         salt
     };
+}
+
+
+
+export function encryptDataWithNewPassword(data: string, password: string): IEncryptedData {
+    
+    const salt = generateSalt()
+    const iv = crypto.randomBytes(16); // Initialization vector
+    const key = crypto.scryptSync(password, salt, 32); // Derive key using scrypt
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+
+    const tag = cipher.getAuthTag().toString('hex'); // Authentication tag for added security
+
+    return {
+        iv: iv.toString('hex'),
+        data: encrypted,
+        tag,
+        salt
+    };
+}
+
+
+
+
+
+export const generateJWT = (payload: IAuthUser) => {
+    return jwt.sign(
+        {
+            payload,
+        },
+        JWT_SECRET,
+        { expiresIn: "1d" }
+    );
 }

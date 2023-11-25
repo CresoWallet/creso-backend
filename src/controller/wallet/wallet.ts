@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import {
   getAllWallets,
-  getMainWallet,
-  getWallet,
+  getEOAWalletOfSmartWallet,
+  getAllWallet,
   prisma,
   saveSmartWalletInDatabase,
   saveWalletInDatabase,
@@ -20,7 +20,7 @@ import {
 import {
   IEncryptedData,
   decryptKey,
-  encryptKeyWithPassword,
+  encryptDataWithNewPassword,
 } from "../../utils/encrpt";
 import {
   addGuardian,
@@ -50,11 +50,25 @@ export class WalletController {
       }
       const { passkey } = req.body;
 
-      const wallet = await getMainWallet(req.user.id);
-      if (!wallet) throw new Error("no main wallet");
-      const walletKey = decryptKey(wallet.privateKey as IEncryptedData);
+      const wallets = await getAllWallet(req.user.id);
 
-      const encrptedFile = await encryptKeyWithPassword(walletKey, passkey);
+      if (wallets.length <= 0) {
+        throw new Error("no main wallet")
+      }
+
+
+      // const walletKey = decryptKey(wallet.privateKey as IEncryptedData);
+
+      // const encrptedFile = await encryptKeyWithPassword(walletKey, passkey);
+
+      const walletKeys: string[] = []
+      wallets.forEach((wallet) => {
+        //const data =  decryptKey(wallet.privateKey as IEncryptedData)
+        walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData))
+      })
+
+      const encrptedFile = encryptDataWithNewPassword(JSON.stringify(walletKeys), passkey)
+
 
       // Create a file to download
       // const filePath = path.join(__dirname, 'creso_backup.txt');
@@ -240,7 +254,6 @@ export class WalletController {
    * @param body
    * {
    * type : EOA | "AA"
-   * sender:
    * walletAddress:
    * network:
    * guardian:
@@ -249,12 +262,12 @@ export class WalletController {
    */
   public async addGuardian(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, guardian, network } = req.body;
+      const { walletAddress, guardian, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender);
+      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -273,12 +286,12 @@ export class WalletController {
 
   public async removeGuardian(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, guardian, network } = req.body;
+      const { walletAddress, guardian, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender);
+      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -296,12 +309,12 @@ export class WalletController {
   }
   public async startRecovery(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, newOwner, network } = req.body;
+      const { walletAddress, newOwner, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender);
+      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -323,12 +336,12 @@ export class WalletController {
     next: NextFunction
   ) {
     try {
-      const { sender, walletAddress, network } = req.body;
+      const { walletAddress, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender);
+      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -346,12 +359,12 @@ export class WalletController {
   }
   public async cancelRecovery(req: Request, res: Response, next: NextFunction) {
     try {
-      const { sender, walletAddress, network } = req.body;
+      const { walletAddress, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(req.user.id, sender);
+      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
       if (!wallet) {
         throw new Error("no wallet");
       }

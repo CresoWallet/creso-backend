@@ -31,14 +31,49 @@ export const getMainWallet = async (userId: string) => {
     // };
 }
 
-export const getWallet = async (userId: string, address: string) => {
-    return await prisma.wallet.findFirst({
+export const getAllWallet = async (userId: string) => {
+    return await prisma.wallet.findMany({
         where: {
             userId: userId,
-            address: address
         },
-
     });
+
+    // return {
+    //     wallets: result?.wallets,
+    //     smartWallets: result?.smartWallets
+    // };
+}
+
+
+export const getEOAWalletOfSmartWallet = async (userId: string, address: string) => {
+    try {
+
+
+
+        const smartWallet = await prisma.smartWallet.findUnique({
+            where: {
+                address: address,
+            },
+            include: {
+                wallet: true, // Include the related Wallet
+            },
+        });
+
+        if (!smartWallet || !smartWallet.wallet) {
+            throw new Error('SmartWallet or related Wallet not found');
+        }
+        if (smartWallet.wallet.userId !== userId) {
+            throw new Error("unauthorized user")
+        }
+
+
+        return smartWallet.wallet;
+
+
+    } catch (error) {
+        throw error;
+    }
+
 
 
 }
