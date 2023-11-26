@@ -20,7 +20,7 @@ export const getMainWallet = async (userId: string) => {
     return await prisma.wallet.findFirst({
         where: {
             userId: userId,
-            // walletName: "main_wallet"
+            walletName: "main_wallet"
         },
 
     });

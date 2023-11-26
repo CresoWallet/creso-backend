@@ -6,6 +6,7 @@ import {
   prisma,
   saveSmartWalletInDatabase,
   saveWalletInDatabase,
+  getMainWallet,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -134,18 +135,23 @@ export class WalletController {
       if (!req.user) {
         throw new Error("error");
       }
-      const { address, walletName, network } = req.body;
+      let { address, walletName, network } = req.body;
       //TODO: validation for walletName only passing string without space
-      if (!address || !walletName) {
+      if (!walletName) {
         throw new Error("fill the fields");
       }
 
-      const wallet = await prisma.wallet.findFirst({
-        where: {
-          userId: req.user.id,
-          address,
-        },
-      });
+      let wallet = null
+      if (address) {
+        wallet = await prisma.wallet.findFirst({
+          where: {
+            userId: req.user.id,
+            address,
+          },
+        });
+      } else {
+        wallet = await getMainWallet(req.user.id)
+      }
 
       if (!wallet) {
         throw new Error("no wallet");
