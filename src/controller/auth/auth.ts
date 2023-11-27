@@ -177,6 +177,8 @@ export class AuthController {
         throw new Error("not authenticated");
       }
 
+      console.log("req : ", req.user);
+
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
         select: {
