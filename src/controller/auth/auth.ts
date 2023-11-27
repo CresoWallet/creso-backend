@@ -109,20 +109,11 @@ export class AuthController {
 
       const tokenExpiryTime = 24 * 60 * 60 * 60;
 
-      console.log("isProd : ", isProd);
-
       //isProd
-      // res.cookie(AUTH_TOKEN, token, {
-      //   httpOnly: false, // The cookie is not accessible via JavaScript
-      //   secure: isProd ? true : false, // Cookie is sent over HTTPS only
-      //   sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
-      //   maxAge: tokenExpiryTime, // Set the cookie's expiration time
-      // });
-
       res.cookie(AUTH_TOKEN, token, {
-        httpOnly: true, // The cookie is not accessible via JavaScript
-        secure: true, // Cookie is sent over HTTPS only
-        sameSite: "none", // Cookie is not sent with cross-site requests
+        httpOnly: false, // The cookie is not accessible via JavaScript
+        secure: isProd ? true : false, // Cookie is sent over HTTPS only
+        sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
         maxAge: tokenExpiryTime, // Set the cookie's expiration time
       });
 
