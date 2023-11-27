@@ -159,10 +159,12 @@ export class AuthController {
   }
   public async logout(req: Request, res: Response) {
     try {
-      res.cookie(AUTH_TOKEN, "", {
-        httpOnly: false,
-        expires: new Date(0), // Set to a past date to invalidate the cookie
-      });
+      // res.cookie(AUTH_TOKEN, "", {
+      //   httpOnly: false,
+      //   expires: new Date(0), // Set to a past date to invalidate the cookie
+      // });
+      res.clearCookie("auth_token");
+
       res.status(200).send("Logged out successfully");
     } catch (error) {
       res.status(500).send({
