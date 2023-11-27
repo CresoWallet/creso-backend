@@ -109,6 +109,8 @@ export class AuthController {
 
       const tokenExpiryTime = 24 * 60 * 60 * 60;
 
+      console.log("isProd : ", isProd);
+
       //isProd
       res.cookie(AUTH_TOKEN, token, {
         httpOnly: false, // The cookie is not accessible via JavaScript
@@ -179,8 +181,6 @@ export class AuthController {
       if (!req.user) {
         throw new Error("not authenticated");
       }
-
-      console.log("req : ", req.user);
 
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
