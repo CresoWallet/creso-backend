@@ -54,22 +54,23 @@ export class WalletController {
       const wallets = await getAllWallet(req.user.id);
 
       if (wallets.length <= 0) {
-        throw new Error("no main wallet")
+        throw new Error("no main wallet");
       }
-
 
       // const walletKey = decryptKey(wallet.privateKey as IEncryptedData);
 
       // const encrptedFile = await encryptKeyWithPassword(walletKey, passkey);
 
-      const walletKeys: string[] = []
+      const walletKeys: string[] = [];
       wallets.forEach((wallet) => {
         //const data =  decryptKey(wallet.privateKey as IEncryptedData)
-        walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData))
-      })
+        walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData));
+      });
 
-      const encrptedFile = encryptDataWithNewPassword(JSON.stringify(walletKeys), passkey)
-
+      const encrptedFile = encryptDataWithNewPassword(
+        JSON.stringify(walletKeys),
+        passkey
+      );
 
       // Create a file to download
       // const filePath = path.join(__dirname, 'creso_backup.txt');
@@ -141,7 +142,7 @@ export class WalletController {
         throw new Error("fill the fields");
       }
 
-      let wallet = null
+      let wallet = null;
       if (address) {
         wallet = await prisma.wallet.findFirst({
           where: {
@@ -150,7 +151,7 @@ export class WalletController {
           },
         });
       } else {
-        wallet = await getMainWallet(req.user.id)
+        wallet = await getMainWallet(req.user.id);
       }
 
       if (!wallet) {
@@ -273,7 +274,10 @@ export class WalletController {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
+      const wallet = await getEOAWalletOfSmartWallet(
+        req.user.id,
+        walletAddress
+      );
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -282,7 +286,11 @@ export class WalletController {
         network
       );
 
+      // console.log("signerWallet : ", signerWallet);
+
       const tx = await addGuardian(signerWallet, walletAddress, guardian);
+
+      console.log("tx : ", tx);
 
       return res.status(200).send(tx);
     } catch (err) {
@@ -297,7 +305,10 @@ export class WalletController {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
+      const wallet = await getEOAWalletOfSmartWallet(
+        req.user.id,
+        walletAddress
+      );
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -320,7 +331,10 @@ export class WalletController {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
+      const wallet = await getEOAWalletOfSmartWallet(
+        req.user.id,
+        walletAddress
+      );
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -347,7 +361,10 @@ export class WalletController {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
+      const wallet = await getEOAWalletOfSmartWallet(
+        req.user.id,
+        walletAddress
+      );
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -370,7 +387,10 @@ export class WalletController {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(req.user.id, walletAddress);
+      const wallet = await getEOAWalletOfSmartWallet(
+        req.user.id,
+        walletAddress
+      );
       if (!wallet) {
         throw new Error("no wallet");
       }
