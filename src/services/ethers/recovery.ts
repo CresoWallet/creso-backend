@@ -7,7 +7,7 @@ export const addGuardian = async (
   guardian: string
 ) => {
   const smartWalletContract = getWalletContract(signer, walletAddress);
-  const tx = await smartWalletContract.addGuardian(guardian);
+  const tx = await smartWalletContract.addGuardian(walletAddress);
   return await tx.wait();
 };
 export const removeGuardian = async (
