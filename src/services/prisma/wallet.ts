@@ -47,9 +47,6 @@ export const getAllWallet = async (userId: string) => {
 
 export const getEOAWalletOfSmartWallet = async (userId: string, address: string) => {
     try {
-
-
-
         const smartWallet = await prisma.smartWallet.findUnique({
             where: {
                 address: address,
@@ -73,9 +70,20 @@ export const getEOAWalletOfSmartWallet = async (userId: string, address: string)
     } catch (error) {
         throw error;
     }
+}
+export const getWallet = async (userId: string, address: string) => {
+    try {
+        return await prisma.wallet.findUnique({
+            where: {
+                address,
+                userId
+            },
 
+        });
 
-
+    } catch (error) {
+        throw error;
+    }
 }
 
 
@@ -108,7 +116,6 @@ export const getAllWallets = async (userId: string) => {
 
 export const getTotalAssets = async (userId: string) => {
     // const wallets = getAllWallets(userId)
-
     return null
 }
 

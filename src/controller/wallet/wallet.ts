@@ -7,6 +7,7 @@ import {
   saveSmartWalletInDatabase,
   saveWalletInDatabase,
   getMainWallet,
+  getWallet,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -326,14 +327,14 @@ export class WalletController {
   }
   public async startRecovery(req: Request, res: Response, next: NextFunction) {
     try {
-      const { walletAddress, newOwner, network } = req.body;
+      const { guardian, walletAddress, newOwner, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(
+      const wallet = await getWallet(
         req.user.id,
-        walletAddress
+        guardian
       );
       if (!wallet) {
         throw new Error("no wallet");
@@ -356,15 +357,17 @@ export class WalletController {
     next: NextFunction
   ) {
     try {
-      const { walletAddress, network } = req.body;
+      const { guardian, walletAddress, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getEOAWalletOfSmartWallet(
+
+      const wallet = await getWallet(
         req.user.id,
-        walletAddress
+        guardian
       );
+
       if (!wallet) {
         throw new Error("no wallet");
       }
@@ -406,6 +409,33 @@ export class WalletController {
       next(err);
     }
   }
+
+  // public async getGuardian(req: Request, res: Response, next: NextFunction) {
+  //   try {
+  //     const { walletAddress, network } = req.body;
+  //     if (!req.user) {
+  //       throw new Error("no user");
+  //     }
+
+  //     const wallet = await getEOAWalletOfSmartWallet(
+  //       req.user.id,
+  //       walletAddress
+  //     );
+  //     if (!wallet) {
+  //       throw new Error("no wallet");
+  //     }
+  //     const signerWallet = getSignerWallet(
+  //       wallet.privateKey as IEncryptedData,
+  //       network
+  //     );
+
+  //     const tx = await cancelRecovery(signerWallet, walletAddress);
+
+  //     return res.status(200).send(tx);
+  //   } catch (err) {
+  //     next(err);
+  //   }
+  // }
 
   public async testApi(req: Request, res: Response, next: NextFunction) {
     try {
