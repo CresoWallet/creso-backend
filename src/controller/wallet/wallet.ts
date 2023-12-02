@@ -31,6 +31,7 @@ import {
   removeGuardian,
   startRecovery,
 } from "../../services/ethers/recovery";
+import { getUserTokens } from "../../services/prisma/token";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -437,6 +438,19 @@ export class WalletController {
   //   }
   // }
 
+  public async getUserAddedTokens(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { network } = req.body;
+
+
+      const tokens = await getUserTokens(network)
+
+      return res.status(200).send({ message: tokens });
+    } catch (err) {
+      next(err);
+    }
+  }
+ 
   public async testApi(req: Request, res: Response, next: NextFunction) {
     try {
       return res.status(200).send({ message: "test" });
@@ -444,4 +458,6 @@ export class WalletController {
       next(err);
     }
   }
+
+
 }

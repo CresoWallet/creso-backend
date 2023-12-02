@@ -21,6 +21,9 @@ router.post("/transfer", authenticateJwt, walletController.makeTransfer);
 
 router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
+router.post("/get/user/tokens", authenticateJwt, walletController.getUserAddedTokens);
+
+
 //guardian
 router.post("/add/guardian", authenticateJwt, walletController.addGuardian);
 router.post("/remove/guardian", authenticateJwt, walletController.removeGuardian);
