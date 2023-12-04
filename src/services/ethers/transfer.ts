@@ -63,7 +63,7 @@ export const transfer = async ({ userId, from, sendTo, amount, network, standard
 
 export async function transferAA({ userId, from, network, amount, sendTo, standard, tokenAddress }: ITransferPayload) {
 
-    try {
+   // try {
 
         const wallet = await getSmartWalletByAddress(userId, from)
 
@@ -125,9 +125,10 @@ export async function transferAA({ userId, from, network, amount, sendTo, standa
         return ev
 
 
-    } catch (err) {
-        console.log(err)
-    }
+    // } catch (err) {
+    //     console.log(err)
+
+    // }
 }
 
 
