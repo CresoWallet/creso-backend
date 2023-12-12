@@ -62,6 +62,7 @@ export class AuthController {
         walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,
+        network: "goerli",
       };
 
       //saving wallet to database

@@ -8,6 +8,8 @@ import {
   saveWalletInDatabase,
   getMainWallet,
   getWallet,
+  findUserByAddress,
+  getSmartWalletByAddress,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -28,10 +30,15 @@ import {
   addGuardian,
   cancelRecovery,
   confirmRecovery,
+  getProposedAddress,
+  getRecoveryConfirmations,
+  getRecoveryStatus,
   removeGuardian,
   startRecovery,
 } from "../../services/ethers/recovery";
 import { getUserTokens } from "../../services/prisma/token";
+import AppError from "../../errors/app";
+import { getMailOptions, getTransporter } from "../../services/email";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -170,6 +177,7 @@ export class WalletController {
         walletName: walletName,
         walletId: wallet.id,
         wallet: createdSmartWallet,
+        network: "goerli",
       };
 
       //saving wallet to database
@@ -270,6 +278,8 @@ export class WalletController {
    * @returns
    */
   public async addGuardian(req: Request, res: Response, next: NextFunction) {
+    const transporter = getTransporter();
+
     try {
       const { walletAddress, guardian, network } = req.body;
       if (!req.user) {
@@ -280,21 +290,75 @@ export class WalletController {
         req.user.id,
         walletAddress
       );
+
       if (!wallet) {
         throw new Error("no wallet");
       }
+
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
         network
       );
 
-      // console.log("signerWallet : ", signerWallet);
+      const response = await findUserByAddress(guardian);
 
-      const tx = await addGuardian(signerWallet, walletAddress, guardian);
+      if (!response) {
+        throw new AppError("Invalid wallet", 404);
+      }
 
-      console.log("tx : ", tx);
+      const getWalletResponse = await getSmartWalletByAddress(
+        req.user.id,
+        walletAddress
+      );
 
-      return res.status(200).send(tx);
+      if (!getWalletResponse) {
+        throw new AppError("Invalid wallet", 404);
+      }
+
+      // getting user email for sending email
+
+      const { email }: any = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          email: true,
+        },
+      });
+
+      console.log("email : ", email);
+
+      if (!email) {
+        throw new AppError("Couldn't find user", 404);
+      }
+
+      const mailOptions = getMailOptions({
+        to: email as any,
+        subject: "Adding you as a guardian",
+        text: `The ${guardian} wallet address has been added to the list of guardians for the ${walletAddress} address.`,
+      });
+
+      await addGuardian(signerWallet, walletAddress, guardian);
+
+      await prisma.guardian.create({
+        data: {
+          guardianAddress: guardian,
+          userId: response.userId,
+          wallet: walletAddress,
+          smartWalletId: getWalletResponse.id,
+        },
+      });
+
+      // send email
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          res
+            .status(400)
+            .send({ message: "Error sending guardian added email" });
+        } else {
+          res.status(200).send({
+            message: "Email sent successfully",
+          });
+        }
+      });
     } catch (err) {
       next(err);
     }
@@ -314,6 +378,7 @@ export class WalletController {
       if (!wallet) {
         throw new Error("no wallet");
       }
+
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
         network
@@ -321,37 +386,80 @@ export class WalletController {
 
       const tx = await removeGuardian(signerWallet, walletAddress, guardian);
 
+      await prisma.guardian.deleteMany({
+        where: {
+          guardianAddress: guardian,
+          wallet: walletAddress,
+        },
+      });
+
       return res.status(200).send(tx);
     } catch (err) {
       next(err);
     }
   }
+
   public async startRecovery(req: Request, res: Response, next: NextFunction) {
+    const transporter = getTransporter();
     try {
       const { guardian, walletAddress, newOwner, network } = req.body;
       if (!req.user) {
         throw new Error("no user");
       }
 
-      const wallet = await getWallet(
-        req.user.id,
-        guardian
-      );
+      const wallet = await getWallet(req.user.id, guardian);
       if (!wallet) {
         throw new Error("no wallet");
       }
+
+      // getting guardians array to send email
+      const guardians = await prisma.guardian.findMany({
+        where: {
+          wallet: walletAddress,
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!guardians) {
+        throw new Error("no wallet");
+      }
+
+      var allGuardiansEmail = guardians.map((obj) => obj.user.email);
+
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
         network
       );
 
-      const tx = await startRecovery(signerWallet, walletAddress, newOwner);
+      await startRecovery(signerWallet, walletAddress, newOwner);
 
-      return res.status(200).send(tx);
+      const mailOptions = getMailOptions({
+        to: allGuardiansEmail,
+        subject: "Recovery commenced",
+        text: `The recovery of the ${walletAddress} wallet address is currently underway.  You are one of the wallet's guardians. reclaim this account within the next 24 hours.`,
+      });
+
+      // send email
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          res.status(400).send({ message: "Error sending emails" });
+        } else {
+          res.status(200).send({
+            message: "Email sent successfully",
+          });
+        }
+      });
     } catch (err) {
       next(err);
     }
   }
+
   public async confirmRecovery(
     req: Request,
     res: Response,
@@ -359,31 +467,85 @@ export class WalletController {
   ) {
     try {
       const { guardian, walletAddress, network } = req.body;
+
       if (!req.user) {
         throw new Error("no user");
       }
 
-
-      const wallet = await getWallet(
-        req.user.id,
-        guardian
-      );
+      const wallet = await getWallet(req.user.id, guardian);
 
       if (!wallet) {
         throw new Error("no wallet");
       }
+
+      const guardians = await prisma.guardian.findMany({
+        where: {
+          wallet: walletAddress,
+        },
+      });
+
+      if (!guardians) {
+        throw new Error("no guardians found");
+      }
+
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
         network
       );
 
+      const newAddress = await getProposedAddress(signerWallet, walletAddress);
+
+      const getWalletResponse = await prisma.wallet.findUnique({
+        where: {
+          address: newAddress,
+        },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+
+      if (!getWalletResponse) {
+        throw new Error("couldn't fetch wallet");
+      }
+
       const tx = await confirmRecovery(signerWallet, walletAddress);
+
+      const guardiansArray = guardians.map((e) => e.guardianAddress);
+
+      const confirmations = await getRecoveryConfirmations(
+        signerWallet,
+        walletAddress,
+        guardiansArray
+      );
+
+      const trueCount = confirmations.filter((value) => value).length;
+      const falseCount = confirmations.filter((value) => !value).length;
+
+      console.log("truecount : ", trueCount);
+      console.log("falsecount : ", falseCount);
+
+      if (trueCount > falseCount) {
+        console.log("haii");
+        const res = await prisma.smartWallet.update({
+          where: {
+            address: walletAddress,
+          },
+          data: {
+            walletId: getWalletResponse.id,
+            userId: getWalletResponse.userId,
+          },
+        });
+
+        console.log("res : ", res);
+      }
 
       return res.status(200).send(tx);
     } catch (err) {
       next(err);
     }
   }
+
   public async cancelRecovery(req: Request, res: Response, next: NextFunction) {
     try {
       const { walletAddress, network } = req.body;
@@ -398,6 +560,7 @@ export class WalletController {
       if (!wallet) {
         throw new Error("no wallet");
       }
+
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
         network
@@ -411,46 +574,135 @@ export class WalletController {
     }
   }
 
-  // public async getGuardian(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     const { walletAddress, network } = req.body;
-  //     if (!req.user) {
-  //       throw new Error("no user");
-  //     }
+  public async getWalletGuardians(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { walletAddress } = req.body;
 
-  //     const wallet = await getEOAWalletOfSmartWallet(
-  //       req.user.id,
-  //       walletAddress
-  //     );
-  //     if (!wallet) {
-  //       throw new Error("no wallet");
-  //     }
-  //     const signerWallet = getSignerWallet(
-  //       wallet.privateKey as IEncryptedData,
-  //       network
-  //     );
+      if (!req.user) {
+        throw new Error("no user");
+      }
 
-  //     const tx = await cancelRecovery(signerWallet, walletAddress);
+      // const provider = getProvider(network);
 
-  //     return res.status(200).send(tx);
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // }
+      // const recoveryData = await getRecoveryStatus(provider, walletAddress);
 
-  public async getUserAddedTokens(req: Request, res: Response, next: NextFunction) {
+      const guardians = await prisma.guardian.findMany({
+        where: {
+          wallet: walletAddress,
+        },
+      });
+
+      // const returnData = {
+      //   guardians,
+      //   recoveryData,
+      // };
+
+      return res.status(200).send(guardians);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async getGuardedWallets(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const guardians = await prisma.guardian.findMany({
+        where: {
+          userId: req.user.id,
+        },
+        include: {
+          smartWallet: {
+            select: {
+              walletName: true,
+              address: true,
+              network: true,
+            },
+          },
+        },
+      });
+
+      return res.status(200).send(guardians);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async getRecoveryStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { walletAddress } = req.body;
+      console.log("walletAddress : ", walletAddress);
+      // console.log("network : ", network);
+      const network = "goerli";
+      if (!req.user) {
+        throw new Error("no user");
+      }
+
+      // const provider = getProvider(network);
+
+      // const signerWallet = provider.getSigner();
+
+      const response = await findUserByAddress(walletAddress);
+
+      if (!response) {
+        throw new AppError("Invalid wallet", 404);
+      }
+
+      const wallet = await getEOAWalletOfSmartWallet(
+        // req.user.id,
+        response.userId,
+        walletAddress
+      );
+
+      if (!wallet) {
+        throw new Error("no wallet");
+      }
+
+      const signerWallet = getSignerWallet(
+        wallet.privateKey as IEncryptedData,
+        network
+      );
+
+      const tx = await getRecoveryStatus(signerWallet, walletAddress);
+
+      console.log("tx : ", tx);
+
+      return res.status(200).send(tx);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async getUserAddedTokens(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { network } = req.body;
 
-
-      const tokens = await getUserTokens(network)
+      const tokens = await getUserTokens(network);
 
       return res.status(200).send({ message: tokens });
     } catch (err) {
       next(err);
     }
   }
- 
+
   public async testApi(req: Request, res: Response, next: NextFunction) {
     try {
       return res.status(200).send({ message: "test" });
@@ -458,6 +710,4 @@ export class WalletController {
       next(err);
     }
   }
-
-
 }

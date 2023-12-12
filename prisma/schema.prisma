@@ -22,6 +22,7 @@ model User {
   updatedAt          DateTime      @updatedAt
   wallets            Wallet[]
   smartWallets       SmartWallet[]
+  guardians          Guardian[]
 }
 
 model Wallet {
@@ -40,10 +41,12 @@ model SmartWallet {
   walletName String @default("")
   address    String @unique
   salt       String @unique
+  network    String
   wallet     Wallet @relation(fields: [walletId], references: [id])
   walletId   String @db.ObjectId
   user       User   @relation(fields: [userId], references: [id])
   userId     String @db.ObjectId
+  guardians  Guardian[] 
 }
 
 
@@ -54,3 +57,19 @@ model Verification {
   createdAt  DateTime      @default(now())
   expireAt   DateTime      
 }
+
+model Guardian{
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  guardianAddress    String
+  wallet             String
+  user               User          @relation(fields: [userId], references: [id])
+  userId             String        @db.ObjectId 
+  smartWallet        SmartWallet   @relation(fields: [smartWalletId], references: [id])
+  smartWalletId      String        @db.ObjectId
+  createdAt          DateTime      @default(now())
+}
+
+
+
+
+
