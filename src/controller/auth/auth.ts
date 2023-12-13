@@ -281,7 +281,7 @@ export class AuthController {
 
       if (new Date().getTime() > +verification.expireAt) {
         res.status(400).send({ message: "OTP expired" });
-      } else if (otp === generatedOTP) {
+      } else if (otp == verification.otp) {
         user.isEmailVerified = true;
         await prisma.user.update({
           where: {
