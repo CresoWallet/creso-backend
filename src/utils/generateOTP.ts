@@ -1,7 +1,8 @@
-import otpGenerator from "otp-generator";
+import crypto from "crypto";
 
-export const generatedOTP = otpGenerator.generate(6, {
-  upperCaseAlphabets: false,
-  specialChars: false,
-  lowerCaseAlphabets: false,
-});
+export const generatedOTP = () =>
+  new Promise((res) =>
+    crypto.randomBytes(3, (err, buffer) => {
+      res(parseInt(buffer.toString("hex"), 16).toString().substr(0, 6));
+    })
+  );

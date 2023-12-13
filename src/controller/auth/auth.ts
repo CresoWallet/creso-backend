@@ -211,10 +211,12 @@ export class AuthController {
     }
     const transporter = getTransporter();
 
+    const otp: any = await generatedOTP();
+
     const mailOptions = getMailOptions({
       to: email as any,
       subject: "OTP verification",
-      text: `Here is the verification code. Please copy it and verify your Email ${generatedOTP}`,
+      text: `Here is the verification code. Please copy it and verify your Email ${otp}`,
     });
 
     try {
@@ -223,12 +225,12 @@ export class AuthController {
           email: email,
         },
         update: {
-          otp: +generatedOTP,
+          otp: +otp,
           expireAt: new Date(new Date().getTime() + 5 * 60000),
         },
         create: {
           email,
-          otp: +generatedOTP,
+          otp: +otp,
           expireAt: new Date(new Date().getTime() + 5 * 60000),
         },
       });
