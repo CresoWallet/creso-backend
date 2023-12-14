@@ -127,7 +127,7 @@ export class AuthController {
     }
   }
 
-  public async loginTwitter(req: Request, res: Response) {
+  public async socialLogin(req: Request, res: Response) {
     try {
       const user = req.user;
       if (!user) {
@@ -190,6 +190,7 @@ export class AuthController {
           email: true,
           username: true,
           id: true,
+          registrationMethod: true,
         },
       });
 

@@ -12,12 +12,12 @@ datasource db {
 
 model User {
   id                 String        @id @default(auto()) @map("_id") @db.ObjectId
-  twitterId          String?       @unique
+  socialId           String?       @unique
   email              String?       @unique
   username           String        @unique
   password           String?
   isEmailVerified    Boolean       @default(false)
-  registrationMethod String        @default("email") // Options: "email", "twitter", "apple"
+  registrationMethod String        @default("email") // Options: "email", "twitter", "apple","google"
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   wallets            Wallet[]
@@ -41,7 +41,8 @@ model SmartWallet {
   walletName String @default("")
   address    String @unique
   salt       String @unique
-  network    String
+  // network    String @default("ethereum")
+  network    String 
   wallet     Wallet @relation(fields: [walletId], references: [id])
   walletId   String @db.ObjectId
   user       User   @relation(fields: [userId], references: [id])
