@@ -1,3 +1,4 @@
+import AppError from "..//errors/app";
 import { DEFAULT_NETWORK } from "../constant";
 import { createAAWallet, createEOAWallet } from "../services/ethers";
 import {
@@ -23,9 +24,21 @@ export const createSocialUser = async ({
   isEmailVerified,
 }: ISocialUserProps) => {
   try {
+    if (email) {
+      const exist = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (exist) {
+        throw new AppError("Email already exists", 404);
+      }
+    }
+
     // Check if a user with this Google ID already exists
     let user = await prisma.user.findUnique({
-      where: { socialId: id, registrationMethod: "google" },
+      where: { socialId: id, registrationMethod: registrationMethod },
     });
 
     if (!user) {
