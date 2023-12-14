@@ -6,7 +6,7 @@ import { createAAWallet, createEOAWallet } from "../../services/ethers";
 import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 import { CLIENT_URL } from "../../config";
-import { AUTH_TOKEN, isProd } from "../../constant";
+import { AUTH_TOKEN, DEFAULT_NETWORK, isProd } from "../../constant";
 import { generatedOTP } from "../../utils/generateOTP";
 import { getMailOptions, getTransporter } from "../../services/email";
 
@@ -14,7 +14,7 @@ export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { username, email, password } = req.body;
-      const network = "goerli";
+
       if (!username || !email || !password) {
         throw new AppError("Missing Fields", 404);
         //return new NextResponse('Missing Fields', { status: 400 })
@@ -54,7 +54,7 @@ export class AuthController {
 
       const createdSmartWallet = await createAAWallet(
         savedWallet.privateKey as IEncryptedData,
-        network
+        DEFAULT_NETWORK
       );
 
       const saveWSmartalletPayload = {
@@ -62,7 +62,7 @@ export class AuthController {
         walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,
-        network: "goerli",
+        network: DEFAULT_NETWORK,
       };
 
       //saving wallet to database

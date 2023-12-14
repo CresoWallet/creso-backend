@@ -1,3 +1,4 @@
+import { DEFAULT_NETWORK } from "../constant";
 import { createAAWallet, createEOAWallet } from "../services/ethers";
 import {
   prisma,
@@ -28,8 +29,6 @@ export const createSocialUser = async ({
     });
 
     if (!user) {
-      const network = "goerli";
-
       // Create a new user if one doesn't exist
       user = await prisma.user.create({
         data: {
@@ -55,7 +54,7 @@ export const createSocialUser = async ({
 
       const createdSmartWallet = await createAAWallet(
         savedWallet.privateKey as IEncryptedData,
-        network
+        DEFAULT_NETWORK
       );
 
       const saveWSmartalletPayload = {
@@ -63,7 +62,7 @@ export const createSocialUser = async ({
         walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,
-        network: "goerli",
+        network: DEFAULT_NETWORK,
       };
 
       //saving wallet to database

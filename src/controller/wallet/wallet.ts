@@ -177,7 +177,7 @@ export class WalletController {
         walletName: walletName,
         walletId: wallet.id,
         wallet: createdSmartWallet,
-        network: "goerli",
+        network,
       };
 
       //saving wallet to database
