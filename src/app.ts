@@ -10,8 +10,6 @@ import passport from "passport";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 
-import "./config/passport";
-
 export const createApp = () => {
   const app = express();
 
