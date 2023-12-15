@@ -8,11 +8,13 @@ export const CLIENT_URL = process.env.CLIENT_URL;
 
 export const SERVER_URL = process.env.SERVER_URL;
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://creso-wallet.vercel.app",
-  "https://wallet-x-beta.vercel.app",
-];
+const allowedOrigins = ["*"];
+
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "https://creso-wallet.vercel.app",
+//   "https://wallet-x-beta.vercel.app",
+// ];
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
   credentials: true,
