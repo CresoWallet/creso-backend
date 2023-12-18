@@ -6,6 +6,8 @@ export const ENTRY_POINT_ADDRESSS =
 
 export const DEFAULT_NETWORK = "goerli";
 
+export const ETHERSCAN_PROVIDER_KEY = process.env.ETHERSCAN_PROVIDER_KEY || "";
+
 export const RPC_LINKS = {
   MAIN: {
     ETHEREUM: "https://mainnet.infura.io/v3/a0b74d65173042fabe9639289bd336b5",
