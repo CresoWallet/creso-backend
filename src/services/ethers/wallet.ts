@@ -55,40 +55,28 @@ export const getHistroy = async (
 ): Promise<ethers.providers.TransactionResponse[]> => {
   let etherscanProvider = new ethers.providers.EtherscanProvider(network);
 
-  const history = [];
+  return await etherscanProvider.getHistory(address);
+};
 
-  try {
-    const code = await etherscanProvider.getCode(address);
-    if (code !== "0x") {
-      // Use Etherscan API for internal transactions
-      const internalTransactionsResponse = await axios.get(
-        "https://api-goerli.etherscan.io/api",
-        {
-          params: {
-            module: "account",
-            action: "txlistinternal",
-            address: address,
-            apikey: ETHERSCAN_PROVIDER_KEY,
-          },
-        }
-      );
-
-      const internalTransactions =
-        internalTransactionsResponse.data.result.filter(
-          (e: any) => e.value > 0
-        );
-
-      history.push(internalTransactions);
-    } else {
-      // Use ethers.js getHistory for external transactions
-      const internalTxn = await etherscanProvider.getHistory(address);
-      history.push(internalTxn);
+export const getInternalTransactions = async (
+  address: string
+): Promise<ethers.providers.TransactionResponse[]> => {
+  // Use Etherscan API for internal transactions
+  const internalTransactionsResponse = await axios.get(
+    "https://api-goerli.etherscan.io/api",
+    {
+      params: {
+        module: "account",
+        action: "txlistinternal",
+        address: address,
+        apikey: ETHERSCAN_PROVIDER_KEY,
+      },
     }
+  );
 
-    return history;
-  } catch (error) {
-    throw error;
-  }
+  const internalTransactions = internalTransactionsResponse.data.result.filter(
+    (e: any) => e.value > 0
+  );
 
-  // return await etherscanProvider.getHistory(address);
+  return internalTransactions;
 };

@@ -16,6 +16,7 @@ import {
   createAAWallet,
   createEOAWallet,
   getHistroy,
+  getInternalTransactions,
   getSignerWallet,
   transfer,
   transferAA,
@@ -123,12 +124,29 @@ export class WalletController {
         throw new Error("error");
       }
 
-      const { address, network } = req.body;
+      var mainWalletHistory: object[] = [];
+      var smartWalletHistory: object[] = [];
+
+      const { network } = req.body;
       //validation
-      if (!address || !network) {
+      if (!network) {
         throw new Error("field invalid");
       }
-      const history = await getHistroy(address, network);
+
+      const wallets = await getAllWallets(req.user.id);
+
+      const mainWallets = wallets.wallets;
+      const smartWallets = wallets.smartWallets;
+
+      for (const wallet of mainWallets!) {
+        mainWalletHistory = await getHistroy(wallet.address, network);
+      }
+
+      for (const wallet of smartWallets!) {
+        smartWalletHistory = await getInternalTransactions(wallet.address);
+      }
+
+      const history = [...mainWalletHistory, ...smartWalletHistory];
 
       return res.status(200).send(history);
     } catch (err: any) {
