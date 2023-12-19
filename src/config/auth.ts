@@ -1,2 +1,2 @@
 
-export const JWT_SECRET = "oh man i didnt have thios gug sa d?";
+export const JWT_SECRET = process.env.JWT_SECRET
