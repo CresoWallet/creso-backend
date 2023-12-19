@@ -7,7 +7,7 @@ import {
 } from "./main";
 import { Wallet, ethers } from "ethers";
 import axios from "axios";
-import { ETHERSCAN_PROVIDER_KEY } from "../../constant";
+import { ENTRY_POINT_ADDRESSS, ETHERSCAN_PROVIDER_KEY } from "../../constant";
 
 export interface IWallet {
   privateKey: string;
@@ -74,9 +74,18 @@ export const getInternalTransactions = async (
     }
   );
 
-  const internalTransactions = internalTransactionsResponse.data.result.filter(
-    (e: any) => e.value > 0
+  console.log("ENTRY_POINT_ADDRESSS : ", ENTRY_POINT_ADDRESSS);
+
+  const it = internalTransactionsResponse.data.result.filter(
+    (e: any) =>
+      e.value > 0 && e.to.toLowerCase() != ENTRY_POINT_ADDRESSS.toLowerCase()
   );
+
+  // Convert timestamps from string to number
+  const internalTransactions = it.map(({ timeStamp, ...tx }: any) => ({
+    ...tx,
+    timestamp: parseInt(timeStamp, 10),
+  }));
 
   return internalTransactions;
 };

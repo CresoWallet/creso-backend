@@ -124,8 +124,7 @@ export class WalletController {
         throw new Error("error");
       }
 
-      var mainWalletHistory: object[] = [];
-      var smartWalletHistory: object[] = [];
+      const history: any[] = [];
 
       const { network } = req.body;
       //validation
@@ -138,17 +137,31 @@ export class WalletController {
       const mainWallets = wallets.wallets;
       const smartWallets = wallets.smartWallets;
 
-      for (const wallet of mainWallets!) {
-        mainWalletHistory = await getHistroy(wallet.address, network);
-      }
+      await Promise.all(
+        mainWallets!.map(async (e) => await getHistroy(e.address, network))
+      )
+        .then((result) => {
+          history.push(result.flat());
+        })
+        .catch((error) => {
+          throw new Error("failed to fetch");
+        });
 
-      for (const wallet of smartWallets!) {
-        smartWalletHistory = await getInternalTransactions(wallet.address);
-      }
+      await Promise.all(
+        smartWallets!.map(async (e) => await getInternalTransactions(e.address))
+      )
+        .then((result) => {
+          history.push(result.flat());
+        })
+        .catch((error) => {
+          throw new Error("failed to fetch");
+        });
 
-      const history = [...mainWalletHistory, ...smartWalletHistory];
+      let sortedHistory = history.flat().sort((a, b) => {
+        return (new Date(b.timestamp) as any) - (new Date(a.timestamp) as any);
+      });
 
-      return res.status(200).send(history);
+      return res.status(200).send(sortedHistory);
     } catch (err: any) {
       next(err);
     }
