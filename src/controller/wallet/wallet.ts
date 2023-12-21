@@ -10,6 +10,7 @@ import {
   getWallet,
   findUserByAddress,
   getSmartWalletByAddress,
+  changeWalletHolder,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -24,6 +25,7 @@ import {
 // import AppError from "../../errors/app";
 import {
   IEncryptedData,
+  decryptDataWithPassword,
   decryptKey,
   encryptDataWithNewPassword,
 } from "../../utils/encrpt";
@@ -54,6 +56,7 @@ export class WalletController {
       next(err);
     }
   }
+
   public async backupWallet(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) {
@@ -67,14 +70,15 @@ export class WalletController {
         throw new Error("no main wallet");
       }
 
-      // const walletKey = decryptKey(wallet.privateKey as IEncryptedData);
-
-      // const encrptedFile = await encryptKeyWithPassword(walletKey, passkey);
-
-      const walletKeys: string[] = [];
+      const walletKeys: any[] = [];
       wallets.forEach((wallet) => {
-        //const data =  decryptKey(wallet.privateKey as IEncryptedData)
-        walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData));
+        walletKeys.push({
+          pk: decryptKey(wallet.privateKey as IEncryptedData),
+          salt: decryptKey(wallet.salt as IEncryptedData),
+          userId: wallet.userId,
+          address: wallet.address,
+          walletName: wallet.walletName,
+        });
       });
 
       const encrptedFile = encryptDataWithNewPassword(
@@ -82,22 +86,33 @@ export class WalletController {
         passkey
       );
 
-      // Create a file to download
-      // const filePath = path.join(__dirname, 'creso_backup.txt');
-      // fs.writeFileSync(filePath, JSON.stringify(encrptedFile));
-
-      // Send file
-      // res.download(filePath, 'creso_backup.txt', (err) => {
-      //     if (err) {
-      //         // Handle error
-      //         console.error(err);
-      //         res.status(500).send('Error in file download');
-      //     }
-      //     // Delete the file after sending
-      //     fs.unlinkSync(filePath);
-      // });
-
       return res.status(200).send(encrptedFile);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async importWallet(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const userId = req.user.id;
+
+      const { passkey, data } = req.body;
+
+      const decryptedFile = decryptDataWithPassword(data, passkey);
+
+      //TODO : check if wallet exist or not. if doesn't exist create a new wallet
+      const updatedWallet = await Promise.all(
+        JSON.parse(decryptedFile).map(
+          async (wallet: any) =>
+            await changeWalletHolder(wallet.address, userId)
+        )
+      );
+
+      return res.status(200).send(updatedWallet);
     } catch (err: any) {
       next(err);
     }
