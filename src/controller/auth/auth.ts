@@ -194,7 +194,6 @@ export class AuthController {
         },
       });
 
-
       return res.status(200).send({ user });
     } catch (error) {
       console.log("error : ", error);
@@ -302,7 +301,6 @@ export class AuthController {
     }
   }
 
-
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {
   //     if (req.user === undefined) {
@@ -373,5 +371,3 @@ export class AuthController {
 
   //   return token;
 }
-
-// console.log("sfhshfsjohfsjfbajlbafbadfa");

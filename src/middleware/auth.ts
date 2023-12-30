@@ -44,12 +44,12 @@ export const verifyToken = (token: string | undefined) => {
       // let user = await User.findById(payload.id);
 
       const user = await prisma.user.findUnique({
-        where: { 
+        where: {
           id: payload.id,
         },
-      });+
+      });
 
-
+      if (!user) throw new Error("no user found");
 
       resolve(payload);
 
@@ -60,4 +60,3 @@ export const verifyToken = (token: string | undefined) => {
     }
   });
 };
- 
