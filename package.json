@@ -8,6 +8,7 @@
     "watch": "tsc -w",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
+    "prod": "ts-node src/index.ts",
     "postinstall": "npx prisma generate",
     "start2": "ts-node src/index.ts",
     "dev2": "nodemon --exec ts-node src/index.ts",
@@ -16,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.5.2",
+    "@prisma/client": "^5.7.1",
     "@types/passport": "^1.0.15",
     "axios": "^1.6.2",
     "bcrypt": "^5.1.1",
@@ -53,7 +54,7 @@
     "@types/passport-google-oauth2": "^0.1.8",
     "@types/passport-twitter": "^1.0.40",
     "nodemon": "^3.0.2",
-    "prisma": "^5.5.2",
+    "prisma": "^5.7.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
