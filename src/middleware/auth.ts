@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Unauthorized } from "../errors";
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 // import User from "../models/user";
 import { IAuthUser } from "../types";
@@ -38,18 +38,18 @@ export const verifyToken = (token: string | undefined) => {
 
       let decodedPayload = (await jwt.verify(
         token,
-        JWT_SECRET
+        JWT_SECRET as Secret
       )) as jwt.JwtPayload;
       let payload = decodedPayload.payload as IAuthUser;
       // let user = await User.findById(payload.id);
 
       const user = await prisma.user.findUnique({
-        where: {
+        where: { 
           id: payload.id,
         },
-      });
+      });+
 
-      if (!user) throw new Error("no user found");
+
 
       resolve(payload);
 
@@ -60,3 +60,4 @@ export const verifyToken = (token: string | undefined) => {
     }
   });
 };
+ 

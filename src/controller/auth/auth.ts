@@ -194,6 +194,7 @@ export class AuthController {
         },
       });
 
+
       return res.status(200).send({ user });
     } catch (error) {
       console.log("error : ", error);
@@ -300,6 +301,7 @@ export class AuthController {
       next(error);
     }
   }
+
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {
