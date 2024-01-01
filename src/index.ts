@@ -3,11 +3,15 @@ import 'dotenv/config'
 import { createApp } from "./app";
 import logger from './services/winston';
 
+import { PrismaClient } from '@prisma/client'
+
+export const prisma = new PrismaClient()
 
 
 const main = async () => {
   //connect to mongodb
   //  ConnectMongodb();
+
 
   const app = createApp();
 

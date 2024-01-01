@@ -14,6 +14,7 @@ export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { username, email, password } = req.body;
+      console.log("body===================",req.body)
 
       if (!username || !email || !password) {
         throw new AppError("Missing Fields", 404);
