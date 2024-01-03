@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { generateSalt } from "./wallet";
 import { JWT_SECRET } from "../config";
 import { ENCRYPTION_KEY } from "../constant";
@@ -103,7 +103,7 @@ export const generateJWT = (payload: IAuthUser) => {
         {
             payload,
         },
-        JWT_SECRET,
+        JWT_SECRET as Secret,
         { expiresIn: "1d" }
     );
 }

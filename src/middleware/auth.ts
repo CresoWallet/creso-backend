@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Unauthorized } from "../errors";
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 // import User from "../models/user";
 import { IAuthUser } from "../types";
@@ -22,6 +22,7 @@ export const authenticateJwt = async (
     // }
 
     const authToken = req.cookies["auth_token"];
+    console.log("🚀 ~ file: auth.ts:25 ~ authToken:", authToken)
     let user = (await verifyToken(authToken)) as IAuthUser;
     req.user = user;
     next();
@@ -38,7 +39,7 @@ export const verifyToken = (token: string | undefined) => {
 
       let decodedPayload = (await jwt.verify(
         token,
-        JWT_SECRET
+        JWT_SECRET as Secret
       )) as jwt.JwtPayload;
       let payload = decodedPayload.payload as IAuthUser;
       // let user = await User.findById(payload.id);

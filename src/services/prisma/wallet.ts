@@ -1,5 +1,5 @@
 import { encryptKey } from "../../utils/encrpt";
-import { prisma } from ".";
+import { prisma } from "./main";
 import { IWallet } from "../ethers";
 
 type ISaveWalletPayload = {
