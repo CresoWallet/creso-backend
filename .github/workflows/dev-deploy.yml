@@ -25,8 +25,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /srv/development/app
+            cd /srv/development/creso-backend
             git pull origin development
-            docker-compose -f docker-compose.dev.yml down
-            docker-compose -f docker-compose.dev.yml build
-            docker-compose -f docker-compose.dev.yml up -d
+            docker compose -f docker-compose.dev.yml down
+            docker compose -f docker-compose.dev.yml build
+            docker compose -f docker-compose.dev.yml up -d
