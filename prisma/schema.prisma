@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeaturtes = ["mongodb]
 }
 
 datasource db {
