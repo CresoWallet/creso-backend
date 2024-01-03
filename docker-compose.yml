@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  # Web Application Service
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: app:latest
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - LOG_DIR=${LOG_DIR}
+      - CLIENT_URL=${CLIENT_URL}
+      - SERVER_URL=${SERVER_URL}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - TWITTER_CLIENT_ID=${TWITTER_CLIENT_ID}
+      - TWITTER_CLIENT_SECRET=${TWITTER_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ETHERSCAN_PROVIDER_KEY=${ETHERSCAN_PROVIDER_KEY}
+      - USER_EMAIL=${USER_EMAIL}
+      - EMAIL_ACCESS_PASSWORD=${EMAIL_ACCESS_PASSWORD}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+    volumes:
+      - ${LOG_DIR}:/usr/src/app/logs
