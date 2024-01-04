@@ -7,3 +7,5 @@ dist/
 logs/
 
 package-lock.json
+
+coverage/
