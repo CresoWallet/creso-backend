@@ -1,4 +1,3 @@
-import AppError from "..//errors/app";
 import { DEFAULT_NETWORK } from "../constant";
 import { createAAWallet, createEOAWallet } from "../services/ethers";
 import {
@@ -32,7 +31,7 @@ export const createSocialUser = async ({
       });
 
       if (exist) {
-        throw new AppError("Email already exists", 404);
+        return exist;
       }
     }
 
@@ -84,6 +83,6 @@ export const createSocialUser = async ({
 
     return user;
   } catch (error) {
-    throw new Error("error");
+    throw new Error(error.message);
   }
 };
