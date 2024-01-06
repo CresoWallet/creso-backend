@@ -1,10 +1,7 @@
 // import { logDirPath } from '../../config';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import path from "path";
-
-// console.log(logDirPath)
-const logDirPath = path.join(__dirname, "logs")
+import { logDirPath } from '../../config';
 
 const logger = winston.createLogger({
     level: 'info',

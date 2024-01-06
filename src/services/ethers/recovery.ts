@@ -121,6 +121,6 @@ export const retrieveGuardians = async (
   );
   // const tx = await smartWalletContract.guardians(100);
   // const tx = await smartWalletContract.recoveryActive.call();
-  console.log("txxxx : ", tx);
+  // console.log("txxxx : ", tx);
   // return await tx.wait();
 };

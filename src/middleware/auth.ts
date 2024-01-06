@@ -22,7 +22,6 @@ export const authenticateJwt = async (
     // }
 
     const authToken = req.cookies["auth_token"];
-    console.log("🚀 ~ file: auth.ts:25 ~ authToken:", authToken)
     let user = (await verifyToken(authToken)) as IAuthUser;
     req.user = user;
     next();
