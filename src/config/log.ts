@@ -1,7 +1,7 @@
 import logger from "../services/winston";
 
 
-export const logDirPath = process.env.LOG_DIR || 'logs';
+export const logDirPath = '/usr/src/app/logs'
 // console.log("logDirPath")
 // console.log(logDirPath)
 
