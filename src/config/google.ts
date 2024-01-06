@@ -21,7 +21,7 @@ passport.use(
         const user = await createSocialUser({
           id: profile.id,
           username: profile.given_name,
-          email: profile.email,
+          email: profile.email.toLowerCase(),
           registrationMethod: "google",
           isEmailVerified: true,
         });

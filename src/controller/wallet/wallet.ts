@@ -355,8 +355,6 @@ export class WalletController {
         },
       });
 
-      console.log("email : ", email);
-
       if (!email) {
         throw new AppError("Couldn't find user", 404);
       }
@@ -553,11 +551,7 @@ export class WalletController {
       const trueCount = confirmations.filter((value) => value).length;
       const falseCount = confirmations.filter((value) => !value).length;
 
-      console.log("truecount : ", trueCount);
-      console.log("falsecount : ", falseCount);
-
       if (trueCount > falseCount) {
-        console.log("haii");
         const res = await prisma.smartWallet.update({
           where: {
             address: walletAddress,
@@ -567,8 +561,6 @@ export class WalletController {
             userId: getWalletResponse.userId,
           },
         });
-
-        console.log("res : ", res);
       }
 
       return res.status(200).send(tx);

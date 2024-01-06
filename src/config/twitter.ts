@@ -21,7 +21,7 @@ passport.use(
         const user = await createSocialUser({
           id: profile.id,
           username: profile.username,
-          email: profile._json.email,
+          email: profile._json.email.toLowerCase(),
           registrationMethod: "twitter",
           isEmailVerified: false,
         });

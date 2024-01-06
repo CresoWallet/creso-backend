@@ -13,8 +13,9 @@ import { getMailOptions, getTransporter } from "../../services/email";
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
     try {
+      req.body = { ...req.body, email: req.body.email.toLowerCase() };
+
       const { username, email, password } = req.body;
-      console.log("body===================",req.body)
 
       if (!username || !email || !password) {
         throw new AppError("Missing Fields", 404);
@@ -77,6 +78,8 @@ export class AuthController {
 
   public async login(req: Request, res: Response, next: NextFunction) {
     try {
+      req.body = { ...req.body, email: req.body.email.toLowerCase() };
+
       const { email, password } = req.body;
       if (!email || !password) {
         throw new AppError("Missing Fields", 404);
