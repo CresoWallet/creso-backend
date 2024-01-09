@@ -10,6 +10,7 @@ import {
   getWallet,
   findUserByAddress,
   getSmartWalletByAddress,
+  changeWalletHolder,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -24,6 +25,7 @@ import {
 // import AppError from "../../errors/app";
 import {
   IEncryptedData,
+  decryptDataWithPassword,
   decryptKey,
   encryptDataWithNewPassword,
 } from "../../utils/encrpt";
@@ -98,6 +100,32 @@ export class WalletController {
       // });
 
       return res.status(200).send(encrptedFile);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async importWallet(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const userId = req.user.id;
+
+      const { passkey, data } = req.body;
+
+      const decryptedFile = decryptDataWithPassword(data, passkey);
+
+      //TODO : check if wallet exist or not. if doesn't exist create a new wallet
+      const updatedWallet = await Promise.all(
+        JSON.parse(decryptedFile).map(
+          async (wallet: any) =>
+            await changeWalletHolder(wallet.address, userId)
+        )
+      );
+
+      return res.status(200).send(updatedWallet);
     } catch (err: any) {
       next(err);
     }

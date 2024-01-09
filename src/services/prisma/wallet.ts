@@ -226,3 +226,17 @@ export const saveSmartWalletInDatabase = async ({
     },
   });
 };
+
+export const changeWalletHolder = async (
+  address: string,
+  newHolder: string
+) => {
+  return await prisma.wallet.update({
+    where: {
+      address: address,
+    },
+    data: {
+      userId: newHolder,
+    },
+  });
+};
