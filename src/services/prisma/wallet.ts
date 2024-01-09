@@ -8,7 +8,6 @@ type ISaveWalletPayload = {
   wallet: IWallet;
 };
 type ISaveSmartWalletDataPlayload = {
-  userId: string;
   walletName: string;
   walletId: string;
   network: string;
@@ -86,26 +85,33 @@ export const getAllWallets = async (userId: string) => {
     where: {
       id: userId,
     },
-    include: {
+    select: {
       wallets: {
         select: {
           walletName: true,
           address: true,
-        },
-      },
-      smartWallets: {
-        select: {
-          walletName: true,
-          address: true,
-          network: true,
+
+          smartWallets: {
+            select: {
+              walletName: true,
+              address: true,
+              network: true,
+            },
+          },
         },
       },
     },
   });
 
+  const smartWallets = [] as any;
+
+  result?.wallets.map(
+    (e) => e.smartWallets.length > 0 && smartWallets.push(e.smartWallets[0])
+  );
+
   return {
     wallets: result?.wallets,
-    smartWallets: result?.smartWallets,
+    smartWallets,
   };
 };
 
@@ -125,19 +131,34 @@ export const findUserByAddress = async (address: string) => {
       },
     });
 
-    // if (!responseFromWallet) {
-    //   throw new Error("Wallet not found");
-    // }
-
     if (!responseFromWallet) {
-      responseFromWallet = await prisma.smartWallet.findUnique({
+      const responseFromSmartWallet = await prisma.smartWallet.findUnique({
         where: {
           address,
+        },
+        select: {
+          walletId: true,
+        },
+      });
+
+      if (!responseFromSmartWallet) {
+        throw new Error("Wallet not found");
+      }
+
+      const user = await prisma.wallet.findUnique({
+        where: {
+          id: responseFromSmartWallet.walletId,
         },
         select: {
           userId: true,
         },
       });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      responseFromWallet = user;
     }
 
     return responseFromWallet;
@@ -146,13 +167,9 @@ export const findUserByAddress = async (address: string) => {
   }
 };
 
-export const getSmartWalletByAddress = async (
-  userId: string,
-  address: string
-) => {
+export const getSmartWalletByAddress = async (address: string) => {
   return await prisma.smartWallet.findFirst({
     where: {
-      userId,
       address,
     },
     include: {
@@ -189,7 +206,6 @@ export const saveWalletInDatabase = async ({
 };
 
 export const saveSmartWalletInDatabase = async ({
-  userId,
   walletName,
   walletId,
   wallet,
@@ -200,11 +216,7 @@ export const saveSmartWalletInDatabase = async ({
       walletName,
       address: wallet.address,
       salt: wallet.salt,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+
       wallet: {
         connect: {
           id: walletId,

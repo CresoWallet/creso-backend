@@ -70,7 +70,6 @@ export const createSocialUser = async ({
       );
 
       const saveWSmartalletPayload = {
-        userId: user.id,
         walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,

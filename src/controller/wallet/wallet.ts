@@ -148,7 +148,9 @@ export class WalletController {
         });
 
       await Promise.all(
-        smartWallets!.map(async (e) => await getInternalTransactions(e.address))
+        smartWallets!.map(
+          async (e: any) => await getInternalTransactions(e.address)
+        )
       )
         .then((result) => {
           history.push(result.flat());
@@ -204,7 +206,6 @@ export class WalletController {
       );
 
       const saveWalletPayload = {
-        userId: req.user.id,
         walletName: walletName,
         walletId: wallet.id,
         wallet: createdSmartWallet,
@@ -337,10 +338,7 @@ export class WalletController {
         throw new AppError("Invalid wallet", 404);
       }
 
-      const getWalletResponse = await getSmartWalletByAddress(
-        req.user.id,
-        walletAddress
-      );
+      const getWalletResponse = await getSmartWalletByAddress(walletAddress);
 
       if (!getWalletResponse) {
         throw new AppError("Invalid wallet", 404);
@@ -558,7 +556,6 @@ export class WalletController {
           },
           data: {
             walletId: getWalletResponse.id,
-            userId: getWalletResponse.userId,
           },
         });
       }

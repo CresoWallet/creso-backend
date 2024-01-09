@@ -60,7 +60,6 @@ export class AuthController {
       );
 
       const saveWSmartalletPayload = {
-        userId: user.id,
         walletName: "smart_wallet",
         walletId: savedWallet.id,
         wallet: createdSmartWallet,
