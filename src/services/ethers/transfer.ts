@@ -81,7 +81,7 @@ export async function transferAA({
 }: ITransferPayload) {
   // try {
 
-  const wallet = await getSmartWalletByAddress(userId);
+  const wallet = await getSmartWalletByAddress(from);
 
   if (!wallet) throw new Error("no from wallet found");
 

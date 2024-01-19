@@ -41,7 +41,11 @@ import {
 } from "../../services/ethers/recovery";
 import { getUserTokens } from "../../services/prisma/token";
 import AppError from "../../errors/app";
-import { getMailOptions, getTransporter } from "../../services/email";
+import {
+  // getMailOptions,
+  // getTransporter,
+  sendEmail,
+} from "../../services/email";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -338,7 +342,7 @@ export class WalletController {
    * @returns
    */
   public async addGuardian(req: Request, res: Response, next: NextFunction) {
-    const transporter = getTransporter();
+    // const transporter = getTransporter();
 
     try {
       const { walletAddress, guardian, network } = req.body;
@@ -374,22 +378,23 @@ export class WalletController {
 
       // getting user email for sending email
 
-      const { email }: any = await prisma.user.findUnique({
-        where: { id: req.user.id },
+      const { email, username }: any = await prisma.user.findUnique({
+        where: { id: response.userId },
         select: {
           email: true,
+          username: true,
         },
       });
 
-      if (!email) {
+      if (!email || !username) {
         throw new AppError("Couldn't find user", 404);
       }
 
-      const mailOptions = getMailOptions({
-        to: email as any,
-        subject: "Adding you as a guardian",
-        text: `The ${guardian} wallet address has been added to the list of guardians for the ${walletAddress} address.`,
-      });
+      // const mailOptions = getMailOptions({
+      //   to: email as any,
+      //   subject: "Adding you as a guardian",
+      //   text: `The ${guardian} wallet address has been added to the list of guardians for the ${walletAddress} address.`,
+      // });
 
       await addGuardian(signerWallet, walletAddress, guardian);
 
@@ -403,17 +408,30 @@ export class WalletController {
       });
 
       // send email
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          res
-            .status(400)
-            .send({ message: "Error sending guardian added email" });
-        } else {
-          res.status(200).send({
-            message: "Email sent successfully",
-          });
-        }
+      // transporter.sendMail(mailOptions, function (error, info) {
+      //   if (error) {
+      //     res
+      //       .status(400)
+      //       .send({ message: "Error sending guardian added email" });
+      //   } else {
+      //     res.status(200).send({
+      //       message: "Email sent successfully",
+      //     });
+      //   }
+      // });
+      const emailResponse = await sendEmail({
+        receivers: [email],
+        template_name: "add-guardian",
+        guardian,
+        walletAddress,
+        receiverName: username,
       });
+
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A OTP mail has been sent ",
+        });
+      }
     } catch (err) {
       next(err);
     }
@@ -455,7 +473,7 @@ export class WalletController {
   }
 
   public async startRecovery(req: Request, res: Response, next: NextFunction) {
-    const transporter = getTransporter();
+    // const transporter = getTransporter();
     try {
       const { guardian, walletAddress, newOwner, network } = req.body;
       if (!req.user) {
@@ -463,9 +481,8 @@ export class WalletController {
       }
 
       const wallet = await getWallet(req.user.id, guardian);
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+
+      if (!wallet) throw new Error("no wallet");
 
       // getting guardians array to send email
       const guardians = await prisma.guardian.findMany({
@@ -481,9 +498,7 @@ export class WalletController {
         },
       });
 
-      if (!guardians) {
-        throw new Error("no wallet");
-      }
+      if (!guardians) throw new Error("no wallet");
 
       var allGuardiansEmail = guardians.map((obj) => obj.user.email);
 
@@ -494,22 +509,34 @@ export class WalletController {
 
       await startRecovery(signerWallet, walletAddress, newOwner);
 
-      const mailOptions = getMailOptions({
-        to: allGuardiansEmail,
-        subject: "Recovery commenced",
-        text: `The recovery of the ${walletAddress} wallet address is currently underway.  You are one of the wallet's guardians. reclaim this account within the next 24 hours.`,
-      });
+      // const mailOptions = getMailOptions({
+      //   to: allGuardiansEmail,
+      //   subject: "Recovery commenced",
+      //   text: `The recovery of the ${walletAddress} wallet address is currently underway.  You are one of the wallet's guardians. reclaim this account within the next 24 hours.`,
+      // });
 
       // send email
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          res.status(400).send({ message: "Error sending emails" });
-        } else {
-          res.status(200).send({
-            message: "Email sent successfully",
-          });
-        }
+      // transporter.sendMail(mailOptions, function (error, info) {
+      //   if (error) {
+      //     res.status(400).send({ message: "Error sending emails" });
+      //   } else {
+      //     res.status(200).send({
+      //       message: "Email sent successfully",
+      //     });
+      //   }
+      // });
+
+      const emailResponse = await sendEmail({
+        receivers: allGuardiansEmail,
+        template_name: "start-recovery",
+        walletAddress,
       });
+
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A OTP mail has been sent ",
+        });
+      }
     } catch (err) {
       next(err);
     }
@@ -529,9 +556,7 @@ export class WalletController {
 
       const wallet = await getWallet(req.user.id, guardian);
 
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      if (!wallet) throw new Error("no wallet");
 
       const guardians = await prisma.guardian.findMany({
         where: {
@@ -539,9 +564,7 @@ export class WalletController {
         },
       });
 
-      if (!guardians) {
-        throw new Error("no guardians found");
-      }
+      if (!guardians) throw new Error("no guardians found");
 
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
@@ -560,9 +583,7 @@ export class WalletController {
         },
       });
 
-      if (!getWalletResponse) {
-        throw new Error("couldn't fetch wallet");
-      }
+      if (!getWalletResponse) throw new Error("couldn't fetch wallet");
 
       const tx = await confirmRecovery(signerWallet, walletAddress);
 
@@ -605,9 +626,7 @@ export class WalletController {
         req.user.id,
         walletAddress
       );
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      if (!wallet) throw new Error("no wallet");
 
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
@@ -693,7 +712,6 @@ export class WalletController {
   ) {
     try {
       const { walletAddress } = req.body;
-      console.log("walletAddress : ", walletAddress);
       // console.log("network : ", network);
       const network = "goerli";
       if (!req.user) {
@@ -706,9 +724,7 @@ export class WalletController {
 
       const response = await findUserByAddress(walletAddress);
 
-      if (!response) {
-        throw new AppError("Invalid wallet", 404);
-      }
+      if (!response) throw new AppError("Invalid wallet", 404);
 
       const wallet = await getEOAWalletOfSmartWallet(
         // req.user.id,
@@ -716,9 +732,7 @@ export class WalletController {
         walletAddress
       );
 
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      if (!wallet) throw new Error("no wallet");
 
       const signerWallet = getSignerWallet(
         wallet.privateKey as IEncryptedData,
