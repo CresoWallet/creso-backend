@@ -8,7 +8,11 @@ import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 import { CLIENT_URL } from "../../config";
 import { AUTH_TOKEN, DEFAULT_NETWORK, isProd } from "../../constant";
 import { generatedOTP } from "../../utils/generateOTP";
-import { getMailOptions, getTransporter } from "../../services/email";
+import {
+  // getMailOptions,
+  // getTransporter,
+  sendEmail,
+} from "../../services/email";
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction) {
@@ -208,20 +212,20 @@ export class AuthController {
   }
 
   public async sendOTPMail(req: Request, res: Response, next: NextFunction) {
-    const email = req.user?.email;
+    const { username, email }: any = req.user;
 
     if (!email) {
       throw new Error("Please provide a valid email!");
     }
-    const transporter = getTransporter();
+    // const transporter = getTransporter();
 
     const otp: any = await generatedOTP();
 
-    const mailOptions = getMailOptions({
-      to: email as any,
-      subject: "OTP verification",
-      text: `Here is the verification code. Please copy it and verify your Email ${otp}`,
-    });
+    // const mailOptions = getMailOptions({
+    //   to: email as any,
+    //   subject: "OTP verification",
+    //   text: `Here is the verification code. Please copy it and verify your Email ${otp}`,
+    // });
 
     try {
       await prisma.verification.upsert({
@@ -240,15 +244,29 @@ export class AuthController {
       });
 
       // send email
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          res.status(400).send({ message: "Error sending OTP email" });
-        } else {
-          res.status(200).send({
-            message: "A OTP mail has been sent ",
-          });
-        }
+      // transporter.sendMail(mailOptions, function (error, info) {
+      //   if (error) {
+      //     res.status(400).send({ message: "Error sending OTP email" });
+      //   } else {
+      //     res.status(200).send({
+      //       message: "A OTP mail has been sent ",
+      //     });
+      //   }
+      // });
+
+      // const receivers = ["mnnasik7@gmail.com"];
+
+      const emailResponse = await sendEmail({
+        receivers: [email],
+        template_name: "otp-email",
+        otp,
+        receiverName: username,
       });
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A OTP mail has been sent ",
+        });
+      }
     } catch (error: any) {
       next(error);
     }
