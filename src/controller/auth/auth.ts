@@ -7,7 +7,7 @@ import { saveWalletInDatabase } from "../../services/prisma";
 import { IEncryptedData, generateJWT } from "../../utils/encrpt";
 import { CLIENT_URL } from "../../config";
 import { AUTH_TOKEN, DEFAULT_NETWORK, isProd } from "../../constant";
-import { generatedOTP } from "../../utils/generateOTP";
+import { sendOtp } from "../../utils/sendOtp";
 import {
   // getMailOptions,
   // getTransporter,
@@ -21,10 +21,8 @@ export class AuthController {
 
       const { username, email, password } = req.body;
 
-      if (!username || !email || !password) {
+      if (!username || !email || !password)
         throw new AppError("Missing Fields", 404);
-        //return new NextResponse('Missing Fields', { status: 400 })
-      }
 
       const exist = await prisma.user.findUnique({
         where: {
@@ -32,10 +30,7 @@ export class AuthController {
         },
       });
 
-      if (exist) {
-        // throw new Error("Email already exists");
-        throw new AppError("Email already exists", 404);
-      }
+      if (exist) throw new AppError("Email already exists", 404);
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -46,36 +41,113 @@ export class AuthController {
           password: hashedPassword,
         },
       });
+
       // Create a new wallet
-      const createdWallet = createEOAWallet();
+      // const createdWallet = createEOAWallet();
 
-      const saveWalletPayload = {
-        userId: user.id,
-        walletName: "main_wallet",
-        wallet: createdWallet,
-      };
-
-      //saving wallet to database
-      const savedWallet = await saveWalletInDatabase(saveWalletPayload);
-
-      const createdSmartWallet = await createAAWallet(
-        savedWallet.privateKey as IEncryptedData,
-        DEFAULT_NETWORK
-      );
-
-      const saveWSmartalletPayload = {
-        walletName: "smart_wallet",
-        walletId: savedWallet.id,
-        wallet: createdSmartWallet,
-        network: DEFAULT_NETWORK,
-      };
+      // const saveWalletPayload = {
+      //   userId: user.id,
+      //   walletName: "main_wallet",
+      //   wallet: createdWallet,
+      // };
 
       //saving wallet to database
-      await saveSmartWalletInDatabase(saveWSmartalletPayload);
+      // const savedWallet = await saveWalletInDatabase(saveWalletPayload);
 
-      res.status(200).send(user);
+      // const createdSmartWallet = await createAAWallet(
+      //   savedWallet.privateKey as IEncryptedData,
+      //   DEFAULT_NETWORK
+      // );
+
+      // const saveWSmartalletPayload = {
+      //   walletName: "smart_wallet",
+      //   walletId: savedWallet.id,
+      //   wallet: createdSmartWallet,
+      //   network: DEFAULT_NETWORK,
+      // };
+
+      // //saving wallet to database
+      // await saveSmartWalletInDatabase(saveWSmartalletPayload);
+
+      const payload = {
+        id: user.id,
+        username: username,
+        email: email || "",
+      };
+
+      const token = generateJWT(payload);
+
+      await sendOtp({ email });
+
+      res.status(200).send({
+        data: { token, userId: user.id },
+        message: "Successfully signed in",
+      });
     } catch (err: any) {
       next(err);
+    }
+  }
+
+  public async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    const { otp, email } = req.body;
+    // const email = req.user?.email;
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw new Error("Email doesn't exists");
+      }
+
+      if (user && user.isEmailVerified) {
+        throw new Error("Email already verified");
+      }
+
+      const verification = await prisma.verification.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!verification) {
+        throw new Error("Email doesn't exists");
+      }
+
+      if (new Date().getTime() > +verification.expireAt) {
+        res.status(400).send({ message: "OTP expired" });
+      } else if (otp == verification.otp) {
+        user.isEmailVerified = true;
+        await prisma.user.update({
+          where: {
+            email: email,
+          },
+          data: {
+            isEmailVerified: true,
+          },
+        });
+        res.status(200).send({ message: "Email verified." });
+      } else {
+        res.status(400).send({ message: "Invalid OTP" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async resendOtp(req: Request, res: Response, next: NextFunction) {
+    const { email } = req.body;
+    try {
+      // const email = req.user?.email;
+
+      if (!email) throw new AppError("User doesn't have email", 404);
+      await sendOtp({ email });
+      res.status(200).send({ message: "Email sent." });
+    } catch (error) {
+      next(error);
     }
   }
 
@@ -115,20 +187,23 @@ export class AuthController {
 
       const token = generateJWT(payload);
 
-      const tokenExpiryTime = 24 * 60 * 60 * 60;
+      // const tokenExpiryTime = 24 * 60 * 60 * 60;
 
       //isProd
-      res.cookie(AUTH_TOKEN, token, {
-        httpOnly: false, // The cookie is not accessible via JavaScript
-        secure: isProd ? true : false, // Cookie is sent over HTTPS only
-        sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
-        maxAge: tokenExpiryTime, // Set the cookie's expiration time
-      });
+      // res.cookie(AUTH_TOKEN, token, {
+      //   httpOnly: false, // The cookie is not accessible via JavaScript
+      //   secure: isProd ? true : false, // Cookie is sent over HTTPS only
+      //   sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
+      //   maxAge: tokenExpiryTime, // Set the cookie's expiration time
+      // });
 
       // res.cookie("house_user", "token");
       // res.status(200).send("Logged in successfully");
 
-      res.status(200).send({ token, user: payload });
+      res.status(200).send({
+        data: { token, userId: user.id },
+        message: "Successfully logged in",
+      });
     } catch (err: any) {
       next(err);
     }
@@ -149,15 +224,20 @@ export class AuthController {
 
       const token = generateJWT(payload);
 
-      const tokenExpiryTime = 24 * 60 * 60 * 60;
+      // const tokenExpiryTime = 24 * 60 * 60 * 60;
 
-      res.cookie(AUTH_TOKEN, token, {
-        httpOnly: false, // The cookie is not accessible via JavaScript
-        secure: isProd ? true : false, // Cookie is sent over HTTPS only
-        sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
-        maxAge: tokenExpiryTime, // Set the cookie's expiration time
-      }); // Sets it as a cookie
-      res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
+      // res.cookie(AUTH_TOKEN, token, {
+      //   httpOnly: false, // The cookie is not accessible via JavaScript
+      //   secure: isProd ? true : false, // Cookie is sent over HTTPS only
+      //   sameSite: isProd ? "none" : "lax", // Cookie is not sent with cross-site requests
+      //   maxAge: tokenExpiryTime, // Set the cookie's expiration time
+      // }); // Sets it as a cookie
+      // res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
+
+      res.status(200).send({
+        data: { token, userId: user.id },
+        message: "Successfully logged in",
+      });
     } catch (error) {
       res.status(500).send({
         message: "error",
@@ -219,7 +299,8 @@ export class AuthController {
     }
     // const transporter = getTransporter();
 
-    const otp: any = await generatedOTP();
+    // const otp: any = await generatedOTP();
+    const otp: any = 7849;
 
     // const mailOptions = getMailOptions({
     //   to: email as any,

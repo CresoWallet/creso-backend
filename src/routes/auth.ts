@@ -10,7 +10,11 @@ const authController: AuthController = new AuthController();
 /*
 username, email, password 
 */
-router.post("/register", authController.register);
+router.post("/signup", authController.register);
+
+router.post("/verify_email", authController.verifyEmail);
+
+router.post("/resend_otp", authController.resendOtp);
 
 router.post("/login", authController.login);
 

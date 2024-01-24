@@ -63,10 +63,6 @@ const getMessage = async (messagePayload: IMessage) => {
           name: "OTP",
           content: otp,
         },
-        {
-          name: "name",
-          content: receiverName,
-        },
       ],
     };
   } else if (template_name === "add-guardian") {
