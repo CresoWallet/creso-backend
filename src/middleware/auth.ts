@@ -12,17 +12,14 @@ export const authenticateJwt = async (
   next: NextFunction
 ) => {
   try {
-    // const authHeader = req.headers["authorization"];
-    // const token = authHeader && authHeader.split(" ")[1];
-    // let user = (await verifyToken(token)) as IAuthUser;
-    // req.user = user;
-    // // throw new Unauthorized('no user found')
-    // if (req.user === undefined) {
-    //   throw new Error("internal Error");
-    // }
-
-    const authToken = req.cookies["auth_token"];
-    let user = (await verifyToken(authToken)) as IAuthUser;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    let user = (await verifyToken(token)) as IAuthUser;
+    req.user = user;
+    // throw new Unauthorized('no user found')
+    if (req.user === undefined) {
+      throw new Error("internal Error");
+    }
     req.user = user;
     next();
   } catch (err: any) {

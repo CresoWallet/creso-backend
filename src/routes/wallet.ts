@@ -7,20 +7,31 @@ const walletController: WalletController = new WalletController();
 
 router.get("/wallet", authenticateJwt, walletController.getWallet);
 
-router.post("/create/wallet", authenticateJwt, walletController.createWallet);
+// router.post("/create/wallet", authenticateJwt, walletController.createWallet);
 
-router.post(
-  "/create/smartwallet",
-  authenticateJwt,
-  walletController.createSmartWallet
-);
+router.post("/wallets/eoa", authenticateJwt, walletController.createWallet);
+
+// router.post(
+//   "/create/smartwallet",
+//   authenticateJwt,
+//   walletController.createSmartWallet
+// );
+
+router.post("/wallets/aa", authenticateJwt, walletController.createSmartWallet);
 
 router.post("/history", authenticateJwt, walletController.getHistory);
 
+// router.get(
+//   "/assets/balance",
+//   authenticateJwt,
+//   walletController.getAssetBalance
+// );
+
+router.get("/wallets/:address/balance", walletController.getAssetBalance);
+
 router.get(
-  "/assets/balance",
-  authenticateJwt,
-  walletController.getAssetBalance
+  "/wallets/:address/transactions",
+  walletController.getWalletTransactions
 );
 
 router.post("/transfer", authenticateJwt, walletController.makeTransfer);

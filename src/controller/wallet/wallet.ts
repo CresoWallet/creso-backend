@@ -19,6 +19,7 @@ import {
   getHistroy,
   getInternalTransactions,
   getSignerWallet,
+  getWalletBalance,
   transfer,
   transferAA,
 } from "../../services/ethers";
@@ -141,10 +142,11 @@ export class WalletController {
     next: NextFunction
   ) {
     try {
-      if (!req.user) {
-        throw new Error("error");
-      }
-      return res.status(200).send({});
+      const { address } = req.params;
+      const { network } = req.body;
+
+      const balance = await getWalletBalance(address, network);
+      return res.status(200).send(balance);
     } catch (err: any) {
       next(err);
     }
@@ -199,6 +201,15 @@ export class WalletController {
     } catch (err: any) {
       next(err);
     }
+  }
+
+  public getWalletTransactions(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const { address } = req.params;
+    const { network } = req.body;
   }
 
   public async createSmartWallet(
@@ -258,21 +269,25 @@ export class WalletController {
       if (!req.user) {
         throw new Error("error");
       }
-      const { walletName } = req.body;
+      // const { walletName } = req.body;
 
       // Create a new wallet
       const createdWallet = createEOAWallet();
 
-      const saveWalletPayload = {
-        userId: req.user.id,
-        walletName: walletName,
-        wallet: createdWallet,
-      };
+      // const saveWalletPayload = {
+      //   userId: req.user.id,
+      //   walletName: walletName,
+      //   wallet: createdWallet,
+      // };
 
-      //saving wallet to database
-      const savedWallet = await saveWalletInDatabase(saveWalletPayload);
+      // //saving wallet to database
+      // const savedWallet = await saveWalletInDatabase(saveWalletPayload);
 
-      return res.status(200).send(savedWallet);
+      // return res.status(200).send("savedWallet");
+      res.status(200).send({
+        data: { seedPhrase: createdWallet.salt, userId: req.user.id },
+        message: "Successfully EOA wallet created",
+      });
     } catch (err) {
       next(err);
     }

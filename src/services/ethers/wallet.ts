@@ -89,3 +89,14 @@ export const getInternalTransactions = async (
 
   return internalTransactions;
 };
+
+export const getWalletBalance = async (
+  walletAddress: string,
+  network: string
+) => {
+  let etherscanProvider = new ethers.providers.EtherscanProvider(network);
+  const balanceInWei = await etherscanProvider.getBalance(walletAddress);
+  const balance = ethers.utils.formatEther(balanceInWei);
+
+  return balance;
+};
