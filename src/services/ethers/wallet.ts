@@ -7,7 +7,11 @@ import {
 } from "./main";
 import { Wallet, ethers } from "ethers";
 import axios from "axios";
-import { ENTRY_POINT_ADDRESSS, ETHERSCAN_PROVIDER_KEY } from "../../constant";
+import {
+  ENTRY_POINT_ADDRESSS,
+  ETHERSCAN_PROVIDER_KEY,
+  RPC_LINKS,
+} from "../../constant";
 
 export interface IWallet {
   privateKey: string;
@@ -90,6 +94,17 @@ export const getInternalTransactions = async (
   return internalTransactions;
 };
 
+export const getTransactionsById = async (txnHash: string) => {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(
+      RPC_LINKS.TEST.GOERLI
+    );
+
+    return await provider.getTransaction(txnHash);
+  } catch (error) {
+    throw new Error(error.reason);
+  }
+};
 export const getWalletBalance = async (
   walletAddress: string,
   network: string

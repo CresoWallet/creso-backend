@@ -19,6 +19,7 @@ import {
   getHistroy,
   getInternalTransactions,
   getSignerWallet,
+  getTransactionsById,
   getWalletBalance,
   transfer,
   transferAA,
@@ -210,6 +211,11 @@ export class WalletController {
   ) {
     const { address } = req.params;
     const { network } = req.body;
+
+    try {
+    } catch (err) {
+      next(err);
+    }
   }
 
   public async createSmartWallet(
@@ -340,6 +346,18 @@ export class WalletController {
       // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)}
       // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
       // } else {throw new AppError("invalid type", 401)] }
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async getTxnDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { transaction_id } = req.params;
+
+      const txn = await getTransactionsById(transaction_id);
+
+      return res.status(200).send(txn);
     } catch (err) {
       next(err);
     }

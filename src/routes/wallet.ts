@@ -34,7 +34,14 @@ router.get(
   walletController.getWalletTransactions
 );
 
-router.post("/transfer", authenticateJwt, walletController.makeTransfer);
+// router.post("/transfer", authenticateJwt, walletController.makeTransfer);
+router.post("/transactions", authenticateJwt, walletController.makeTransfer);
+
+router.get(
+  "/transactions/:transaction_id",
+  authenticateJwt,
+  walletController.getTxnDetails
+);
 
 router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
