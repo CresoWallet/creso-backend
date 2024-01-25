@@ -43,6 +43,18 @@ router.get(
   walletController.getTxnDetails
 );
 
+router.get(
+  "/tokens/:address/balance/:token_address",
+  authenticateJwt,
+  walletController.getTokenBalance
+);
+
+router.post(
+  "/tokens/transfer",
+  authenticateJwt,
+  walletController.transferToken
+);
+
 router.post("/backup/wallet", authenticateJwt, walletController.backupWallet);
 
 router.post("/import/wallet", authenticateJwt, walletController.importWallet);

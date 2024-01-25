@@ -19,6 +19,7 @@ import {
   getHistroy,
   getInternalTransactions,
   getSignerWallet,
+  getTokenBlnce,
   getTransactionsById,
   getWalletBalance,
   transfer,
@@ -358,6 +359,69 @@ export class WalletController {
       const txn = await getTransactionsById(transaction_id);
 
       return res.status(200).send(txn);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async getTokenBalance(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { address, token_address } = req.params;
+      const { network } = req.body;
+
+      // const provider = getProvider(network);
+
+      // const tokenContract = new ethers.Contract(
+      //   token_address,
+      //   tokenAbi,
+      //   provider
+      // );
+
+      // const balance = await tokenContract.balanceOf(address);
+
+      const blnce = await getTokenBlnce({ address, token_address, network });
+
+      return res.status(200).send(blnce);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async transferToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const { type, sendTo, amount, from, network, tokenAddress } = req.body;
+
+      //validation
+      if (!from) {
+        throw new Error("invalid request");
+      }
+
+      const payload: ITransferPayload = {
+        userId: req.user.id,
+        sendTo,
+        amount,
+        from,
+        network,
+        standard: "stable",
+        tokenAddress,
+      };
+
+      const receipt =
+        type === "EOA" ? await transfer(payload) : await transferAA(payload);
+
+      return res.status(200).send(receipt);
+
+      // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)}
+      // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
+      // } else {throw new AppError("invalid type", 401)] }
     } catch (err) {
       next(err);
     }
