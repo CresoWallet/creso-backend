@@ -403,6 +403,38 @@ export class AuthController {
     }
   }
 
+  public async enable2FA(req: Request, res: Response, next: NextFunction) {
+    const { method } = req.body;
+
+    const enabled2Fa = await prisma.user.update({
+      where: {
+        id: req.user?.id,
+      },
+      data: {
+        twoFactorMethod: method,
+      },
+    });
+
+    if (!enabled2Fa) throw new AppError("User not found", 404);
+
+    res.status(200).send(enabled2Fa);
+  }
+
+  public async disable2FA(req: Request, res: Response, next: NextFunction) {
+    const disable2Fa = await prisma.user.update({
+      where: {
+        id: req.user?.id,
+      },
+      data: {
+        twoFactorMethod: "disable",
+      },
+    });
+
+    if (!disable2Fa) throw new AppError("User not found", 404);
+
+    res.status(200).send(disable2Fa);
+  }
+
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
   //   try {
   //     if (req.user === undefined) {

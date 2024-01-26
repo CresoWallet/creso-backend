@@ -47,6 +47,10 @@ router.get(
   authController.socialLogin
 );
 
+router.post("/auth/2fa/enable", authenticateJwt, authController.enable2FA);
+
+router.post("/auth/2fa/disable", authenticateJwt, authController.disable2FA);
+
 router.post("/sendOTP", authenticateJwt, authController.sendOTPMail);
 
 router.post("/verifyOTP", authenticateJwt, authController.verifyOTP);
