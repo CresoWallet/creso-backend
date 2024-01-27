@@ -406,33 +406,64 @@ export class AuthController {
   public async enable2FA(req: Request, res: Response, next: NextFunction) {
     const { method } = req.body;
 
-    const enabled2Fa = await prisma.user.update({
-      where: {
-        id: req.user?.id,
-      },
-      data: {
-        twoFactorMethod: method,
-      },
-    });
+    try {
+      if (!req.user) throw new Error("not authenticated");
 
-    if (!enabled2Fa) throw new AppError("User not found", 404);
+      const enabled2Fa = await prisma.security.upsert({
+        where: {
+          userId: req.user.id,
+        },
+        update: {
+          securityMethod: { push: method },
+        },
+        create: {
+          userId: req.user.id,
+          securityMethod: method,
+        },
+      });
 
-    res.status(200).send(enabled2Fa);
+      res.status(200).send(enabled2Fa);
+    } catch (err: any) {
+      next(err);
+    }
   }
 
   public async disable2FA(req: Request, res: Response, next: NextFunction) {
-    const disable2Fa = await prisma.user.update({
-      where: {
-        id: req.user?.id,
-      },
-      data: {
-        twoFactorMethod: "disable",
-      },
-    });
+    const { method } = req.body;
+    const { id }: any = req.user;
 
-    if (!disable2Fa) throw new AppError("User not found", 404);
+    try {
+      const security = await prisma.security.findUnique({
+        where: {
+          userId: id,
+        },
+        select: {
+          securityMethod: true,
+        },
+      });
 
-    res.status(200).send(disable2Fa);
+      if (!security)
+        throw new Error(
+          "Two-factor authentication is not enabled by the user!"
+        );
+
+      const securityMethods = security.securityMethod.filter(
+        (item) => item !== method
+      );
+
+      const disable2Fa = await prisma.security.update({
+        where: {
+          userId: req.user?.id,
+        },
+        data: {
+          securityMethod: securityMethods,
+        },
+      });
+
+      res.status(200).send(disable2Fa);
+    } catch (err: any) {
+      next(err);
+    }
   }
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
