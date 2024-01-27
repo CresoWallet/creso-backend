@@ -23,6 +23,7 @@ model User {
   wallets            Wallet[]
   guardians          Guardian[]
   Security           Security[]
+  Device             Device[]
 }
 
 model Wallet {
@@ -75,6 +76,15 @@ model Security{
   userId               String        @db.ObjectId @unique
 }
 
+
+model Device{
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt            DateTime      @default(now())
+  user                 User          @relation(fields: [userId], references: [id])
+  deviceToken          String
+  platform             String
+  userId               String        @db.ObjectId
+}
 
 
 
