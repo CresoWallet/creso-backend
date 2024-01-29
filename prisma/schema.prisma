@@ -86,7 +86,7 @@ model Device{
   device               Json
   platform             String
   userId               String        @db.ObjectId
-  isEOALogedIn         Boolean       @default(false)
+  isEOALoggedIn        Boolean       @default(false)
 }
 
 model Notification{

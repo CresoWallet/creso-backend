@@ -24,4 +24,10 @@ router.post(
   notificationController.sendPushNotification
 );
 
+router.post(
+  "/notifications/transactions/:transaction_id/request_approval",
+  authenticateJwt,
+  notificationController.requestTxnApproval
+);
+
 export { router as notification };

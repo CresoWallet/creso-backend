@@ -35,6 +35,7 @@ interface IMessage {
   receiverName?: string;
   guardian?: string;
   walletAddress?: string;
+  platform?: string;
   devices?: any;
 }
 
@@ -47,6 +48,7 @@ const getMessage = async (messagePayload: IMessage) => {
     guardian,
     walletAddress,
     devices,
+    platform,
   } = messagePayload;
   const receiversArray = [] as any;
   receivers.map((email: any) => {
@@ -108,6 +110,18 @@ const getMessage = async (messagePayload: IMessage) => {
         {
           name: "devices",
           content: devices,
+        },
+      ],
+    };
+  } else if (template_name === "request-transaction-approval") {
+    message = {
+      subject: "Requesting approval for transaction",
+      text: `Requesting approval for transaction. please accept the invitation on main device ${platform}`,
+      to: receiversArray,
+      global_merge_vars: [
+        {
+          name: "devices",
+          content: platform,
         },
       ],
     };
