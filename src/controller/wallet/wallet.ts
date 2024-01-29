@@ -49,6 +49,7 @@ import {
   // getTransporter,
   sendEmail,
 } from "../../services/email";
+import { detectDevice } from "../../utils/deviceDetect";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -234,6 +235,10 @@ export class WalletController {
         throw new Error("fill the fields");
       }
 
+      const userDevice = await detectDevice(req, res, next);
+
+      if (!userDevice) throw new Error("couldn't find a device");
+
       let wallet = null;
       if (address) {
         wallet = await prisma.wallet.findFirst({
@@ -264,6 +269,14 @@ export class WalletController {
 
       //saving wallet to database
       const savedWallet = await saveSmartWalletInDatabase(saveWalletPayload);
+
+      await prisma.device.create({
+        data: {
+          device: userDevice.device as any,
+          platform: userDevice.os.name,
+          userId: req.user.id,
+        },
+      });
 
       return res.status(200).send(savedWallet);
     } catch (err) {

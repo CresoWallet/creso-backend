@@ -10,8 +10,7 @@ export class NotificationController {
       const userId = req.user?.id;
       if (!userId) throw new Error("not authenticated");
 
-      const userAgentString = req.headers["user-agent"] || "";
-      const result = await detectDevice(userAgentString);
+      const result = await detectDevice(req, res, next);
 
       if (!result) throw new Error("couldn't find a device");
 
