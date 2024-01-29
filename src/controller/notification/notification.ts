@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import AppError from "../../errors/app";
 import { prisma } from "../../services/prisma";
-import bcrypt from "bcrypt";
+import { sendEmail } from "src/services/email";
 
 export class NotificationController {
   public async registerDevice(req: Request, res: Response, next: NextFunction) {
@@ -46,6 +46,50 @@ export class NotificationController {
       res
         .status(200)
         .send({ data: deleteUser, message: "Successfully unregister device" });
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async sendPushNotification(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.user?.id;
+      const email = req.user?.email;
+
+      if (!userId) throw new AppError("not authenticated", 404);
+
+      if (!email)
+        throw new AppError(
+          "To send mail, the user requires a mail address!",
+          404
+        );
+
+      const devices = await prisma.device.findMany({
+        where: { userId },
+      });
+
+      if (!devices)
+        throw new AppError("The user has not yet registered any devices!", 404);
+
+      const emailResponse = await sendEmail({
+        receivers: [email],
+        template_name: "push-notification",
+        devices,
+      });
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A OTP mail has been sent ",
+        });
+      }
+
+      res.status(200).send({
+        data: emailResponse,
+        message: "Successfully sent email",
+      });
     } catch (err: any) {
       next(err);
     }

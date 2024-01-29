@@ -18,4 +18,10 @@ router.delete(
   notificationController.unregisterDevice
 );
 
+router.post(
+  "/notifications",
+  authenticateJwt,
+  notificationController.sendPushNotification
+);
+
 export { router as notification };

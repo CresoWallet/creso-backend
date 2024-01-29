@@ -35,6 +35,7 @@ interface IMessage {
   receiverName?: string;
   guardian?: string;
   walletAddress?: string;
+  devices?: any;
 }
 
 const getMessage = async (messagePayload: IMessage) => {
@@ -45,6 +46,7 @@ const getMessage = async (messagePayload: IMessage) => {
     receiverName,
     guardian,
     walletAddress,
+    devices,
   } = messagePayload;
   const receiversArray = [] as any;
   receivers.map((email: any) => {
@@ -94,6 +96,18 @@ const getMessage = async (messagePayload: IMessage) => {
         {
           name: "walletAddress",
           content: walletAddress,
+        },
+      ],
+    };
+  } else if (template_name === "push-notification") {
+    message = {
+      subject: "Registered devices for push notification",
+      text: `${devices}`,
+      to: receiversArray,
+      global_merge_vars: [
+        {
+          name: "devices",
+          content: devices,
         },
       ],
     };
