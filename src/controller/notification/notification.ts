@@ -1,27 +1,30 @@
 import { NextFunction, Request, Response } from "express";
 import AppError from "../../errors/app";
 import { prisma } from "../../services/prisma";
-import { sendEmail } from "src/services/email";
+import { sendEmail } from "../../services/email";
+import { detectDevice } from "../../utils/deviceDetect";
 
 export class NotificationController {
   public async registerDevice(req: Request, res: Response, next: NextFunction) {
     try {
-      const { deviceToken, platform } = req.body;
       const userId = req.user?.id;
-
       if (!userId) throw new Error("not authenticated");
 
-      const device = await prisma.device.create({
+      const userAgentString = req.headers["user-agent"] || "";
+      const result = await detectDevice(userAgentString);
+
+      if (!result) throw new Error("couldn't find a device");
+
+      const addedDevice = await prisma.device.create({
         data: {
-          deviceToken,
-          platform,
+          device: result.device as any,
+          platform: result.os.name,
           userId,
         },
       });
-
       res
         .status(200)
-        .send({ data: device, message: "Successfully device added" });
+        .send({ data: addedDevice, message: "Successfully device added" });
     } catch (err: any) {
       next(err);
     }
