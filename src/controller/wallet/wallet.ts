@@ -50,6 +50,7 @@ import {
   sendEmail,
 } from "../../services/email";
 import { detectDevice } from "../../utils/deviceDetect";
+import { isContractAddress } from "../../utils/ethers";
 
 export class WalletController {
   public async getWallet(req: Request, res: Response, next: NextFunction) {
@@ -215,6 +216,17 @@ export class WalletController {
     const { network } = req.body;
 
     try {
+      isContractAddress(address).then(async (isContract) => {
+        if (isContract) {
+          // console.log("This is a contract address.");
+          const smartWalletHistory = await getInternalTransactions(address);
+          return res.status(200).send(smartWalletHistory);
+        } else {
+          // console.log("This is a regular (EOA) address.");
+          const EOAHistory = await getHistroy(address, network);
+          return res.status(200).send(EOAHistory);
+        }
+      });
     } catch (err) {
       next(err);
     }
