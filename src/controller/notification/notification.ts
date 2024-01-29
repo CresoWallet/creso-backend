@@ -75,6 +75,14 @@ export class NotificationController {
       if (!devices)
         throw new AppError("The user has not yet registered any devices!", 404);
 
+      await prisma.notification.create({
+        data: {
+          type: "push-notification",
+          data: "devices",
+          userId,
+        },
+      });
+
       const emailResponse = await sendEmail({
         receivers: [email],
         template_name: "push-notification",
