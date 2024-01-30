@@ -146,4 +146,47 @@ export class NotificationController {
       next(err);
     }
   }
+
+  public async transactionExecuted(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.user?.id;
+      const userEmail = req.user?.email;
+      const transaction_id = req.params;
+      if (!userId) throw new AppError("not authenticated", 404);
+
+      if (!userEmail)
+        throw new AppError(
+          "User doesn't have any mail address to send mail",
+          404
+        );
+
+      const EOALoggedInDevice = await prisma.device.findFirst({
+        where: {
+          userId,
+          isEOALoggedIn: true,
+        },
+      });
+
+      if (!EOALoggedInDevice)
+        throw new AppError("couldn't find a main device", 404);
+
+      const emailResponse = await sendEmail({
+        receivers: [userEmail],
+        template_name: "initiated-transaction",
+        txnId: transaction_id,
+      });
+
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A mail has been sent ",
+        });
+      }
+    } catch (err: any) {
+      next(err);
+    }
+  }
 }

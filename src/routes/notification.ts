@@ -30,4 +30,10 @@ router.post(
   notificationController.requestTxnApproval
 );
 
+router.post(
+  "/notifications/transactions/:transaction_id/executed",
+  authenticateJwt,
+  notificationController.transactionExecuted
+);
+
 export { router as notification };

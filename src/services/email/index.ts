@@ -37,6 +37,7 @@ interface IMessage {
   walletAddress?: string;
   platform?: string;
   devices?: any;
+  txnId?: any;
 }
 
 const getMessage = async (messagePayload: IMessage) => {
@@ -49,6 +50,7 @@ const getMessage = async (messagePayload: IMessage) => {
     walletAddress,
     devices,
     platform,
+    txnId,
   } = messagePayload;
   const receiversArray = [] as any;
   receivers.map((email: any) => {
@@ -122,6 +124,18 @@ const getMessage = async (messagePayload: IMessage) => {
         {
           name: "devices",
           content: platform,
+        },
+      ],
+    };
+  } else if (template_name === "initiated-transaction") {
+    message = {
+      subject: "Transaction has been executed",
+      text: `Your ${txnId} has been executed`,
+      to: receiversArray,
+      global_merge_vars: [
+        {
+          name: "txnId",
+          content: txnId,
         },
       ],
     };
