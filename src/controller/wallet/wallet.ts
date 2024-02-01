@@ -346,8 +346,10 @@ export class WalletController {
         throw new Error("error");
       }
 
-      const { type, sendTo, amount, from, network, standard, tokenAddress } =
-        req.body;
+      // const { type, sendTo, amount, from, network, standard, tokenAddress } =
+      //   req.body;
+
+      const { type, sendTo, amount, from, network, tokenAddress } = req.body;
 
       //validation
       if (!from) {
@@ -360,7 +362,7 @@ export class WalletController {
         amount,
         from,
         network,
-        standard,
+        standard: "native",
         tokenAddress,
       };
 
@@ -409,6 +411,7 @@ export class WalletController {
       // const balance = await tokenContract.balanceOf(address);
 
       const blnce = await getTokenBlnce({ address, token_address, network });
+      console.log("nalance : ", blnce);
 
       return res.status(200).send(blnce);
     } catch (err) {

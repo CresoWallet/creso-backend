@@ -81,7 +81,7 @@ export class AuthController {
 
       res.status(200).send({
         data: { token, userId: user.id },
-        message: "Successfully signed in",
+        message: `Otp email sent to ${email}`,
       });
     } catch (err: any) {
       next(err);
