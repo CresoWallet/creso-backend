@@ -404,7 +404,7 @@ export class AuthController {
   }
 
   public async enable2FA(req: Request, res: Response, next: NextFunction) {
-    const { method } = req.body;
+    const { methods } = req.body;
 
     try {
       if (!req.user) throw new Error("not authenticated");
@@ -414,11 +414,11 @@ export class AuthController {
           userId: req.user.id,
         },
         update: {
-          securityMethod: { push: method },
+          securityMethod: { push: methods },
         },
         create: {
           userId: req.user.id,
-          securityMethod: method,
+          securityMethod: methods,
         },
       });
 
@@ -429,7 +429,7 @@ export class AuthController {
   }
 
   public async disable2FA(req: Request, res: Response, next: NextFunction) {
-    const { method } = req.body;
+    const { methods } = req.body;
     const { id }: any = req.user;
 
     try {
@@ -447,8 +447,8 @@ export class AuthController {
           "Two-factor authentication is not enabled by the user!"
         );
 
-      const securityMethods = security.securityMethod.filter(
-        (item) => item !== method
+      const filteredSecurityMethods = security.securityMethod.filter(
+        (method) => !methods.includes(method)
       );
 
       const disable2Fa = await prisma.security.update({
@@ -456,7 +456,7 @@ export class AuthController {
           userId: req.user?.id,
         },
         data: {
-          securityMethod: securityMethods,
+          securityMethod: filteredSecurityMethods,
         },
       });
 

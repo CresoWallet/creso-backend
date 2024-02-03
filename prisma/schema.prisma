@@ -73,7 +73,7 @@ model Security{
   id                   String        @id @default(auto()) @map("_id") @db.ObjectId
   createdAt            DateTime      @default(now())
   user                 User          @relation(fields: [userId], references: [id])
-  securityMethod       String[]
+  securityMethod       String[]      // Options: "email", "sms", "authenticatorApp"
   userId               String        @db.ObjectId @unique
 }
 

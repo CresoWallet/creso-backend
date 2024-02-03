@@ -26,6 +26,7 @@ export class UserController {
   public async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { userData } = req.body;
+
       const updateUser = await prisma.user.update({
         where: {
           id: req.user?.id,
@@ -43,6 +44,10 @@ export class UserController {
 
   public async changePassword(req: Request, res: Response, next: NextFunction) {
     try {
+      if (!req.user) {
+        throw new Error("not authenticated");
+      }
+
       const { currentPassword, newPassword } = req.body;
 
       const user = await prisma.user.findUnique({
@@ -60,7 +65,7 @@ export class UserController {
       );
 
       if (!isCurrentPasswordMatch)
-        throw new AppError("Password doesn't match", 404);
+        throw new AppError("Current password doesn't match", 404);
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
