@@ -15,4 +15,16 @@ router.put(
   userController.changePassword
 );
 
+router.post(
+  "/actions/:action_type",
+  authenticateJwt,
+  userController.initiateAction
+);
+
+router.post(
+  "/actions/:confirmation_request_id/approve",
+  authenticateJwt,
+  userController.approveAction
+);
+
 export { router as user };

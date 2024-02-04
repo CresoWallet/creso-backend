@@ -83,4 +83,50 @@ export class UserController {
       next(err);
     }
   }
+
+  public async initiateAction(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("not authenticated");
+      }
+
+      const { action_type } = req.params;
+      if (action_type) {
+        const initiateTxn = await prisma.notification.create({
+          data: {
+            type: "send-transaction",
+            transactionStatus: "pending",
+            userId: req.user.id,
+          },
+        });
+
+        res.status(200).send(initiateTxn);
+      }
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async approveAction(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("not authenticated");
+      }
+
+      const { confirmation_request_id } = req.params;
+
+      // const updateNotification = await prisma.notification.update({
+      //   where:{
+
+      //   }
+      //   data: {
+      //     type: "send-transaction",
+      //     transactionStatus: "pending",
+      //     userId: req.user.id,
+      //   },
+      // });
+    } catch (err: any) {
+      next(err);
+    }
+  }
 }
