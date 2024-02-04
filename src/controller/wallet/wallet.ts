@@ -116,6 +116,39 @@ export class WalletController {
     }
   }
 
+  public async importExistingWallet(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const userId = req.user.id;
+
+      const { walletAddress, walletName, salt } = req.body;
+
+      const saveWalletPayload = {
+        userId: req.user.id,
+        walletName: walletName,
+        wallet: {
+          address: walletAddress,
+          salt: salt,
+        },
+        // deviceId: device.id,
+      };
+
+      //saving wallet to database
+      // await saveWalletInDatabase(saveWalletPayload);
+
+      // return res.status(200).send(updatedWallet);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
   public async importWallet(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) {
@@ -310,7 +343,6 @@ export class WalletController {
       if (!walletName) throw new Error("Please enter wallet name");
 
       const result = await detectDevice(req, res, next);
-      // const os = JSON.stringify(result?.os);
 
       if (!result) throw new Error("couldn't find a device");
 
@@ -334,7 +366,6 @@ export class WalletController {
         message: "Successfully EOA wallet created",
       });
     } catch (err) {
-      console.log("err : ", err);
       next(err);
     }
   }

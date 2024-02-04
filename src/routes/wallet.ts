@@ -19,6 +19,12 @@ router.post("/wallets/eoa", authenticateJwt, walletController.createWallet);
 
 router.post("/wallets/aa", authenticateJwt, walletController.createSmartWallet);
 
+router.post(
+  "/wallets/import",
+  authenticateJwt,
+  walletController.importExistingWallet
+);
+
 router.post("/history", authenticateJwt, walletController.getHistory);
 
 // router.get(
