@@ -14,7 +14,7 @@ import {
 } from "../../constant";
 
 export interface IWallet {
-  privateKey: string;
+  // privateKey: string;
   address: string;
   salt: string;
 }
@@ -25,29 +25,30 @@ export const createEOAWallet = (): IWallet => {
   const { privateKey, address: publicKey, mnemonic } = wallet;
 
   return {
-    privateKey,
+    // privateKey,
     address: publicKey,
     salt: mnemonic.phrase,
   };
 };
 export const createAAWallet = async (
-  privateKey: IEncryptedData,
-  network: IProviderName
+  publicKey: string[]
+  // network: IProviderName
 ): Promise<IWallet> => {
   const salt = generateSalt();
 
-  const signerWallet = getSignerWallet(privateKey, network);
-  const signerAddress = await signerWallet.getAddress();
+  // const signerWallet = getSignerWallet(publicKey, network);
+  const owners = publicKey;
+  // const signerAddress = await signerWallet.getAddress();
 
-  const walletFactoryContract = getWalletFactoryContract(signerWallet);
+  const walletFactoryContract = getWalletFactoryContract();
 
   const smartAccountAddress = await walletFactoryContract.getAddress(
-    signerAddress,
+    owners,
     salt
   );
 
   return {
-    privateKey: signerAddress,
+    // owners: signerAddress,
     address: smartAccountAddress,
     salt,
   };
@@ -66,17 +67,14 @@ export const getInternalTransactions = async (
   address: string
 ): Promise<ethers.providers.TransactionResponse[]> => {
   // Use Etherscan API for internal transactions
-  const internalTransactionsResponse = await axios.get(
-    "https://api-goerli.etherscan.io/api",
-    {
-      params: {
-        module: "account",
-        action: "txlistinternal",
-        address: address,
-        apikey: ETHERSCAN_PROVIDER_KEY,
-      },
-    }
-  );
+  const internalTransactionsResponse = await axios.get(RPC_LINKS.TEST.MUMBAI, {
+    params: {
+      module: "account",
+      action: "txlistinternal",
+      address: address,
+      apikey: ETHERSCAN_PROVIDER_KEY,
+    },
+  });
 
   console.log("ENTRY_POINT_ADDRESSS : ", ENTRY_POINT_ADDRESSS);
 
@@ -97,7 +95,7 @@ export const getInternalTransactions = async (
 export const getTransactionsById = async (txnHash: string) => {
   try {
     const provider = new ethers.providers.JsonRpcProvider(
-      RPC_LINKS.TEST.GOERLI
+      RPC_LINKS.TEST.MUMBAI
     );
 
     return await provider.getTransaction(txnHash);

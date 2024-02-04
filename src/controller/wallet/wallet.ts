@@ -268,8 +268,9 @@ export class WalletController {
       }
 
       const createdSmartWallet = await createAAWallet(
-        wallet.privateKey as IEncryptedData,
-        network
+        address
+        // wallet.privateKey as IEncryptedData,
+        // network
       );
 
       const saveWalletPayload = {
@@ -838,7 +839,7 @@ export class WalletController {
     try {
       const { walletAddress } = req.body;
       // console.log("network : ", network);
-      const network = "goerli";
+      const network = "mumbai";
       if (!req.user) {
         throw new Error("no user");
       }

@@ -245,7 +245,7 @@ export async function transferETHFromSmartWallet(
   try {
     // Initialize provider and wallet
     //
-    const smartWalletContract = getWalletContract(signer, from);
+    const smartWalletContract = getWalletContract(from);
 
     // Convert amount to wei
     const amountInWei = ethers.utils.parseEther(amount);

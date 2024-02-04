@@ -6,7 +6,7 @@ export const addGuardian = async (
   walletAddress: string,
   guardian: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
   const tx = await smartWalletContract.addGuardian(guardian);
   return await tx.wait();
 };
@@ -15,7 +15,7 @@ export const removeGuardian = async (
   walletAddress: string,
   guardian: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const tx = await smartWalletContract.removeGuardian(guardian);
   return await tx.wait();
@@ -25,7 +25,7 @@ export const startRecovery = async (
   walletAddress: string,
   proposedNewOwner: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const tx = await smartWalletContract.startRecovery(proposedNewOwner);
 
@@ -35,7 +35,7 @@ export const confirmRecovery = async (
   signer: ethers.Wallet,
   walletAddress: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const tx = await smartWalletContract.confirmRecovery();
   return await tx.wait();
@@ -45,7 +45,7 @@ export const cancelRecovery = async (
   signer: ethers.Wallet,
   walletAddress: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const tx = await smartWalletContract.cancelRecovery();
   return await tx.wait();
@@ -55,7 +55,7 @@ export const getRecoveryStatus = async (
   provider: any,
   walletAddress: string
 ) => {
-  const smartWalletContract = getWalletContract(provider, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const isRecoveryActive = await smartWalletContract.recoveryActive.call();
   const recoveryTimeLock = await smartWalletContract.recoveryTimeLock.call();
@@ -83,7 +83,7 @@ export const getRecoveryConfirmations = async (
   walletAddress: string,
   guardianAddresses: any
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   var confirmedArray = [];
   for (var i = 0; i < guardianAddresses.length; i++) {
@@ -101,7 +101,7 @@ export const getProposedAddress = async (
   signer: ethers.Wallet,
   walletAddress: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   const newAddress = await smartWalletContract.proposedNewOwner.call();
 
@@ -112,7 +112,7 @@ export const retrieveGuardians = async (
   signer: ethers.Wallet,
   walletAddress: string
 ) => {
-  const smartWalletContract = getWalletContract(signer, walletAddress);
+  const smartWalletContract = getWalletContract(walletAddress);
 
   // console.log("smartWalletContract : ", smartWalletContract);
 

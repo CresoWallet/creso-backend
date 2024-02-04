@@ -3,6 +3,8 @@
 //   "0x8aa201DCd34522aFB250442E2915426244624918";
 export const CL_WALLETFACTORY_ADDRESS =
   "0xdDd02AB4874A9ffc13cED59763A7BE9824c1FFCF";
+export const CRESO_WALLETFACTORY_ADDRESS =
+  "0xf57f53639AcCf7385F456Dd86E49fE281a6b3BAB";
 export const ENTRY_POINT_ADDRESSS =
   "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 
@@ -16,6 +18,7 @@ export const RPC_LINKS = {
   },
   TEST: {
     GOERLI: "https://goerli.infura.io/v3/a0b74d65173042fabe9639289bd336b5",
+    MUMBAI: "https://rpc-mumbai.maticvigil.com",
   },
 };
 export const BUNDLER_RPC_URL =

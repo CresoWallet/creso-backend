@@ -4,12 +4,14 @@ import { RPC_LINKS } from "../constant";
 
 export const ERC20ABI = erc20ABIJson;
 
-const provider = new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.GOERLI);
+const provider = new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.MUMBAI);
 
 export const getOKXChainId = (network: string) => {
   switch (network) {
     case "goerli":
       return "70000030";
+    case "mumbai":
+      return "80001";
     default:
       return "1";
   }
