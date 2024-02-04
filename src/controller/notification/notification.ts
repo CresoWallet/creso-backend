@@ -17,7 +17,8 @@ export class NotificationController {
       const addedDevice = await prisma.device.create({
         data: {
           device: result.device as any,
-          platform: result.os.name,
+          os: result.os as any,
+          client: result.client as any,
           userId,
         },
       });
@@ -134,7 +135,7 @@ export class NotificationController {
       const emailResponse = await sendEmail({
         receivers: [userEmail],
         template_name: "request-transaction-approval",
-        platform: EOALoggedInDevice?.platform,
+        platform: EOALoggedInDevice?.device,
       });
 
       if (emailResponse) {

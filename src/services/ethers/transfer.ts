@@ -44,7 +44,8 @@ export const transfer = async ({
     throw new Error("couldn't find the wallet");
   }
 
-  const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network);
+  // const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network);
+  const signer = getSignerWallet(wallet.address, network);
 
   //TODO: add some validation
   const value = ethers.utils.parseEther(amount);
@@ -86,7 +87,8 @@ export async function transferAA({
   if (!wallet) throw new Error("no from wallet found");
 
   const signer = getSignerWallet(
-    wallet.wallet.privateKey as IEncryptedData,
+    // wallet.wallet.privateKey as IEncryptedData,
+    wallet.wallet.address,
     network
   );
   const value = ethers.utils.parseEther(amount);

@@ -42,12 +42,13 @@ export const getBundlerRPC = (network: IProviderName) => {
 };
 
 export const getSignerWallet = (
-  pk: IEncryptedData,
+  // pk: IEncryptedData,
+  publicKey: string,
   providerName: IProviderName
 ) => {
-  const privateKey = decryptKey(pk);
+  // const privateKey = decryptKey(pk);
   const provider = getProvider(providerName);
-  return new ethers.Wallet(privateKey, provider);
+  return new ethers.Wallet(publicKey, provider);
 };
 
 // export const getWalletFactoryContract = (wallet: ethers.Wallet) => {

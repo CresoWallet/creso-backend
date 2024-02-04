@@ -35,7 +35,7 @@ interface IMessage {
   receiverName?: string;
   guardian?: string;
   walletAddress?: string;
-  platform?: string;
+  platform?: any;
   devices?: any;
   txnId?: any;
 }

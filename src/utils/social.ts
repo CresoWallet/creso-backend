@@ -52,32 +52,33 @@ export const createSocialUser = async ({
         },
       });
 
-      // Create a new wallet
-      const createdWallet = createEOAWallet();
+      // // Create a new wallet
+      // const createdWallet = createEOAWallet();
 
-      const saveWalletPayload = {
-        userId: user.id,
-        walletName: "main_wallet",
-        wallet: createdWallet,
-      };
+      // const saveWalletPayload = {
+      //   userId: user.id,
+      //   walletName: "main_wallet",
+      //   wallet: createdWallet,
+      // };
 
-      //saving wallet to database
-      const savedWallet = await saveWalletInDatabase(saveWalletPayload);
+      // //saving wallet to database
+      // const savedWallet = await saveWalletInDatabase(saveWalletPayload);
 
-      const createdSmartWallet = await createAAWallet(
-        savedWallet.privateKey as IEncryptedData,
-        DEFAULT_NETWORK
-      );
+      // const createdSmartWallet = await createAAWallet(
+      //   // savedWallet.privateKey as IEncryptedData,
+      //   // DEFAULT_NETWORK
+      //   [savedWallet.address]
+      // );
 
-      const saveWSmartalletPayload = {
-        walletName: "smart_wallet",
-        walletId: savedWallet.id,
-        wallet: createdSmartWallet,
-        network: DEFAULT_NETWORK,
-      };
+      // const saveWSmartalletPayload = {
+      //   walletName: "smart_wallet",
+      //   walletId: savedWallet.id,
+      //   wallet: createdSmartWallet,
+      //   network: DEFAULT_NETWORK,
+      // };
 
-      //saving wallet to database
-      await saveSmartWalletInDatabase(saveWSmartalletPayload);
+      // //saving wallet to database
+      // await saveSmartWalletInDatabase(saveWSmartalletPayload);
     }
 
     return user;

@@ -6,6 +6,7 @@ type ISaveWalletPayload = {
   userId: string;
   walletName: string;
   wallet: IWallet;
+  deviceId: string;
 };
 type ISaveSmartWalletDataPlayload = {
   walletName: string;
@@ -174,9 +175,9 @@ export const getSmartWalletByAddress = async (address: string) => {
     },
     include: {
       wallet: {
-        select: {
-          privateKey: true,
-        },
+        // select: {
+        //   privateKey: true,
+        // },
       },
     },
   });
@@ -186,16 +187,22 @@ export const saveWalletInDatabase = async ({
   userId,
   walletName,
   wallet,
+  deviceId,
 }: ISaveWalletPayload) => {
-  const encrptedPk = encryptKey(wallet.privateKey);
+  // const encrptedPk = encryptKey(wallet.privateKey);
   const encrptedSalt = encryptKey(wallet.salt);
 
   return await prisma.wallet.create({
     data: {
       walletName,
       address: wallet.address,
-      privateKey: encrptedPk,
+      // privateKey: encrptedPk,
       salt: encrptedSalt,
+      device: {
+        connect: {
+          id: deviceId,
+        },
+      },
       user: {
         connect: {
           id: userId,

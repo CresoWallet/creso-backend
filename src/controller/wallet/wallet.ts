@@ -11,6 +11,7 @@ import {
   findUserByAddress,
   getSmartWalletByAddress,
   changeWalletHolder,
+  addDeviceInCreateWallet,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -85,7 +86,8 @@ export class WalletController {
       const walletKeys: string[] = [];
       wallets.forEach((wallet) => {
         //const data =  decryptKey(wallet.privateKey as IEncryptedData)
-        walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData));
+        // walletKeys.push(decryptKey(wallet.privateKey as IEncryptedData));
+        walletKeys.push(wallet.address);
       });
 
       const encrptedFile = encryptDataWithNewPassword(
@@ -283,13 +285,13 @@ export class WalletController {
       //saving wallet to database
       const savedWallet = await saveSmartWalletInDatabase(saveWalletPayload);
 
-      await prisma.device.create({
-        data: {
-          device: userDevice.device as any,
-          platform: userDevice.os.name,
-          userId: req.user.id,
-        },
-      });
+      // await prisma.device.create({
+      //   data: {
+      //     device: userDevice.device as any,
+      //     // platform: userDevice.os.name,
+      //     userId: req.user.id,
+      //   },
+      // });
 
       return res.status(200).send(savedWallet);
     } catch (err) {
@@ -302,26 +304,37 @@ export class WalletController {
       if (!req.user) {
         throw new Error("error");
       }
-      // const { walletName } = req.body;
+
+      const { walletName } = req.body;
+
+      if (!walletName) throw new Error("Please enter wallet name");
+
+      const result = await detectDevice(req, res, next);
+      // const os = JSON.stringify(result?.os);
+
+      if (!result) throw new Error("couldn't find a device");
+
+      const device = await addDeviceInCreateWallet(req.user.id, result);
 
       // Create a new wallet
       const createdWallet = createEOAWallet();
 
-      // const saveWalletPayload = {
-      //   userId: req.user.id,
-      //   walletName: walletName,
-      //   wallet: createdWallet,
-      // };
+      const saveWalletPayload = {
+        userId: req.user.id,
+        walletName: walletName,
+        wallet: createdWallet,
+        deviceId: device.id,
+      };
 
-      // //saving wallet to database
-      // const savedWallet = await saveWalletInDatabase(saveWalletPayload);
+      //saving wallet to database
+      await saveWalletInDatabase(saveWalletPayload);
 
-      // return res.status(200).send("savedWallet");
       res.status(200).send({
         data: { seedPhrase: createdWallet.salt, userId: req.user.id },
         message: "Successfully EOA wallet created",
       });
     } catch (err) {
+      console.log("err : ", err);
       next(err);
     }
   }
@@ -486,7 +499,8 @@ export class WalletController {
       }
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 
@@ -579,7 +593,8 @@ export class WalletController {
       }
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 
@@ -629,7 +644,8 @@ export class WalletController {
       var allGuardiansEmail = guardians.map((obj) => obj.user.email);
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 
@@ -693,7 +709,8 @@ export class WalletController {
       if (!guardians) throw new Error("no guardians found");
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 
@@ -755,7 +772,8 @@ export class WalletController {
       if (!wallet) throw new Error("no wallet");
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 
@@ -861,7 +879,8 @@ export class WalletController {
       if (!wallet) throw new Error("no wallet");
 
       const signerWallet = getSignerWallet(
-        wallet.privateKey as IEncryptedData,
+        // wallet.privateKey as IEncryptedData,
+        wallet.address,
         network
       );
 

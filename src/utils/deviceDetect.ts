@@ -7,6 +7,12 @@ const detector = new DeviceDetector({
   deviceAliasCode: false,
 });
 
+// export interface IDevice {
+//   device: JSON;
+//   os: JSON;
+//   client: JSON;
+// }
+
 // const userAgent =
 //     //   "Mozilla/5.0 (Linux; Android 5.0; NX505J Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36";
 
@@ -21,6 +27,12 @@ export const detectDevice = async (
     const device = detector.detect(userAgent);
 
     if (!device) throw new Error("couldn't find a device");
+
+    // return {
+    //   device: device.device,
+    //   os: device.os,
+    //   client: device.client,
+    // };
 
     return device;
   } catch (err: any) {
