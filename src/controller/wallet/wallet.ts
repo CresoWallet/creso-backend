@@ -128,22 +128,31 @@ export class WalletController {
 
       const userId = req.user.id;
 
-      const { walletAddress, walletName, salt } = req.body;
+      const { walletAddress, walletName } = req.body;
+
+      if (!walletName || !walletAddress)
+        throw new Error("Please enter wallet name and wallet address");
+
+      const result = await detectDevice(req, res, next);
+
+      if (!result) throw new Error("couldn't find a device");
+
+      const device = await addDeviceInCreateWallet(userId, result);
 
       const saveWalletPayload = {
-        userId: req.user.id,
+        userId,
         walletName: walletName,
-        wallet: {
-          address: walletAddress,
-          salt: salt,
-        },
-        // deviceId: device.id,
+        walletAddress,
+        deviceId: device.id,
       };
 
       //saving wallet to database
-      // await saveWalletInDatabase(saveWalletPayload);
+      await saveWalletInDatabase(saveWalletPayload);
 
-      // return res.status(200).send(updatedWallet);
+      return res.status(200).send({
+        data: saveWalletPayload,
+        message: "Successfully import EOA wallet",
+      });
     } catch (err: any) {
       next(err);
     }
@@ -354,7 +363,8 @@ export class WalletController {
       const saveWalletPayload = {
         userId: req.user.id,
         walletName: walletName,
-        wallet: createdWallet,
+        // wallet: createdWallet,
+        walletAddress: createdWallet.address,
         deviceId: device.id,
       };
 
@@ -362,8 +372,12 @@ export class WalletController {
       await saveWalletInDatabase(saveWalletPayload);
 
       res.status(200).send({
-        data: { seedPhrase: createdWallet.salt, userId: req.user.id },
-        message: "Successfully EOA wallet created",
+        data: {
+          seedPhrase: createdWallet.salt,
+          userId: req.user.id,
+          walletAddress: createdWallet.address,
+        },
+        message: "EOA wallet Successfully created",
       });
     } catch (err) {
       next(err);

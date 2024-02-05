@@ -5,7 +5,8 @@ import { IWallet } from "../ethers";
 type ISaveWalletPayload = {
   userId: string;
   walletName: string;
-  wallet: IWallet;
+  // wallet: IWallet;
+  walletAddress: string;
   deviceId: string;
 };
 type ISaveSmartWalletDataPlayload = {
@@ -186,18 +187,20 @@ export const getSmartWalletByAddress = async (address: string) => {
 export const saveWalletInDatabase = async ({
   userId,
   walletName,
-  wallet,
+  // wallet,
+  walletAddress,
   deviceId,
 }: ISaveWalletPayload) => {
   // const encrptedPk = encryptKey(wallet.privateKey);
-  const encrptedSalt = encryptKey(wallet.salt);
+  // const encrptedSalt = encryptKey(wallet.salt);
 
   return await prisma.wallet.create({
     data: {
       walletName,
-      address: wallet.address,
+      // address: wallet.address,
+      address: walletAddress,
       // privateKey: encrptedPk,
-      salt: encrptedSalt,
+      // salt: encrptedSalt,
       device: {
         connect: {
           id: deviceId,

@@ -127,10 +127,22 @@ const getMessage = async (messagePayload: IMessage) => {
         },
       ],
     };
-  } else if (template_name === "initiated-transaction") {
+  } else if (template_name === "transaction-executed") {
     message = {
       subject: "Transaction has been executed",
       text: `Your ${txnId} has been executed`,
+      to: receiversArray,
+      global_merge_vars: [
+        {
+          name: "txnId",
+          content: txnId,
+        },
+      ],
+    };
+  } else if (template_name === "confirm-transaction") {
+    message = {
+      subject: "Confirmed transaction",
+      text: `Your ${txnId} has been confirmed`,
       to: receiversArray,
       global_merge_vars: [
         {

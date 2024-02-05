@@ -32,7 +32,7 @@ model Wallet {
   walletName   String        @default("")
   address      String        @unique
   // privateKey   Json          @unique
-  salt         Json          @unique
+  // salt         Json          @unique
   user         User          @relation(fields: [userId], references: [id])
   userId       String        @db.ObjectId
   device       Device?        @relation(fields: [deviceId], references: [id])   
@@ -101,6 +101,7 @@ model Notification{
   data                 String?
   type                 String
   transactionStatus    String?
+  transactionId        String?       @unique
 }
 
 

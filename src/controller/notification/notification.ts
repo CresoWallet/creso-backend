@@ -75,6 +75,8 @@ export class NotificationController {
         where: { userId },
       });
 
+      const allDevices = devices.map((device: any) => device.client.name);
+
       if (!devices)
         throw new AppError("The user has not yet registered any devices!", 404);
 
@@ -89,18 +91,13 @@ export class NotificationController {
       const emailResponse = await sendEmail({
         receivers: [email],
         template_name: "push-notification",
-        devices,
+        devices: allDevices.join(","),
       });
       if (emailResponse) {
         res.status(200).send({
-          message: "A OTP mail has been sent ",
+          message: "A Push notification mail has been sent!",
         });
       }
-
-      res.status(200).send({
-        data: emailResponse,
-        message: "Successfully sent email",
-      });
     } catch (err: any) {
       next(err);
     }
@@ -114,6 +111,8 @@ export class NotificationController {
     try {
       const userId = req.user?.id;
       const userEmail = req.user?.email;
+      const { transaction_id } = req.params;
+
       if (!userId) throw new AppError("not authenticated", 404);
 
       if (!userEmail)
@@ -132,10 +131,68 @@ export class NotificationController {
       if (!EOALoggedInDevice)
         throw new AppError("couldn't find a main device", 404);
 
+      await prisma.notification.create({
+        data: {
+          type: "request_approval",
+          transactionStatus: "pending",
+          userId: userId,
+          transactionId: transaction_id,
+        },
+      });
+
       const emailResponse = await sendEmail({
         receivers: [userEmail],
         template_name: "request-transaction-approval",
         platform: EOALoggedInDevice?.device,
+      });
+
+      if (emailResponse) {
+        res.status(200).send({
+          message: "A mail has been sent ",
+        });
+      }
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async approveTransaction(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.user?.id;
+      const userEmail = req.user?.email;
+      const { transaction_id } = req.params;
+
+      if (!userId) throw new AppError("not authenticated", 404);
+
+      if (!userEmail)
+        throw new AppError(
+          "User doesn't have any mail address to send mail",
+          404
+        );
+
+      const existingRecord = await prisma.notification.findUnique({
+        where: { transactionId: transaction_id },
+      });
+
+      if (!existingRecord) throw new AppError("Transaction not found", 404);
+
+      await prisma.notification.update({
+        where: {
+          transactionId: transaction_id,
+        },
+        data: {
+          transactionStatus: "approved",
+        },
+      });
+
+      const emailResponse = await sendEmail({
+        receivers: [userEmail],
+        template_name: "confirm-transaction",
+        txnId: transaction_id,
       });
 
       if (emailResponse) {
@@ -156,7 +213,8 @@ export class NotificationController {
     try {
       const userId = req.user?.id;
       const userEmail = req.user?.email;
-      const transaction_id = req.params;
+      const { transaction_id } = req.params;
+
       if (!userId) throw new AppError("not authenticated", 404);
 
       if (!userEmail)
@@ -175,9 +233,24 @@ export class NotificationController {
       if (!EOALoggedInDevice)
         throw new AppError("couldn't find a main device", 404);
 
+      const existingRecord = await prisma.notification.findUnique({
+        where: { transactionId: transaction_id },
+      });
+
+      if (!existingRecord) throw new AppError("Transaction not found", 404);
+
+      await prisma.notification.update({
+        where: {
+          transactionId: transaction_id,
+        },
+        data: {
+          transactionStatus: "executed",
+        },
+      });
+
       const emailResponse = await sendEmail({
         receivers: [userEmail],
-        template_name: "initiated-transaction",
+        template_name: "transaction-executed",
         txnId: transaction_id,
       });
 
@@ -187,6 +260,7 @@ export class NotificationController {
         });
       }
     } catch (err: any) {
+      // console.log(err);
       next(err);
     }
   }

@@ -31,6 +31,12 @@ router.post(
 );
 
 router.post(
+  "/transactions/:transaction_id/approve",
+  authenticateJwt,
+  notificationController.approveTransaction
+);
+
+router.post(
   "/notifications/transactions/:transaction_id/executed",
   authenticateJwt,
   notificationController.transactionExecuted
