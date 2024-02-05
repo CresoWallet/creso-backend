@@ -286,14 +286,15 @@ export class WalletController {
         throw new Error("error");
       }
       let { address, walletName, network } = req.body;
-      //TODO: validation for walletName only passing string without space
-      if (!walletName) {
-        throw new Error("fill the fields");
+
+      if (!(network === "mumbai" || network === "ethereum")) {
+        throw new Error("Invalid network");
       }
 
-      const userDevice = await detectDevice(req, res, next);
-
-      if (!userDevice) throw new Error("couldn't find a device");
+      if (!walletName) {
+        //TODO: validation for walletName only passing string without space
+        throw new Error("fill the fields");
+      }
 
       let wallet = null;
       if (address) {
@@ -307,14 +308,15 @@ export class WalletController {
         wallet = await getMainWallet(req.user.id);
       }
 
+      //TODO: we can create wallet if we can't find it
       if (!wallet) {
         throw new Error("no wallet");
       }
 
       const createdSmartWallet = await createAAWallet(
-        address
+        address,
         // wallet.privateKey as IEncryptedData,
-        // network
+        network
       );
 
       const saveWalletPayload = {
@@ -326,14 +328,6 @@ export class WalletController {
 
       //saving wallet to database
       const savedWallet = await saveSmartWalletInDatabase(saveWalletPayload);
-
-      // await prisma.device.create({
-      //   data: {
-      //     device: userDevice.device as any,
-      //     // platform: userDevice.os.name,
-      //     userId: req.user.id,
-      //   },
-      // });
 
       return res.status(200).send(savedWallet);
     } catch (err) {
@@ -355,6 +349,7 @@ export class WalletController {
 
       if (!result) throw new Error("couldn't find a device");
 
+      //TODO : need to check device type. create wallet only happens in mobile device
       const device = await addDeviceInCreateWallet(req.user.id, result);
 
       // Create a new wallet

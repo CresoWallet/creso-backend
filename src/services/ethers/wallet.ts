@@ -31,8 +31,8 @@ export const createEOAWallet = (): IWallet => {
   };
 };
 export const createAAWallet = async (
-  publicKey: string[]
-  // network: IProviderName
+  publicKey: string[],
+  network: IProviderName
 ): Promise<IWallet> => {
   const salt = generateSalt();
 
@@ -40,7 +40,7 @@ export const createAAWallet = async (
   const owners = publicKey;
   // const signerAddress = await signerWallet.getAddress();
 
-  const walletFactoryContract = getWalletFactoryContract();
+  const walletFactoryContract = getWalletFactoryContract(network);
 
   const smartAccountAddress = await walletFactoryContract.getAddress(
     owners,

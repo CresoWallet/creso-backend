@@ -58,8 +58,8 @@ export const getSignerWallet = (
 //     wallet
 //   );
 // };
-export const getWalletFactoryContract = () => {
-  const provider = getProvider("mumbai");
+export const getWalletFactoryContract = (network: IProviderName) => {
+  const provider = getProvider(network);
   return new ethers.Contract(
     CRESO_WALLETFACTORY_ADDRESS,
     clWalletFactoryJson.abi,
@@ -72,6 +72,7 @@ export const getWalletFactoryContract = () => {
 // };
 
 export const getWalletContract = (address: string) => {
+  //TODO : need to get network
   const provider = getProvider("mumbai");
   return new ethers.Contract(address, clWalletJson.abi, provider);
 };
@@ -81,6 +82,7 @@ export const getWalletContract = (address: string) => {
 // };
 
 export const getEntryPointContract = () => {
+  //TODO : need to get network
   const provider = getProvider("mumbai");
   return new ethers.Contract(
     ENTRY_POINT_ADDRESSS,

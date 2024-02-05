@@ -69,18 +69,18 @@ export class AuthController {
       // //saving wallet to database
       // await saveSmartWalletInDatabase(saveWSmartalletPayload);
 
-      const payload = {
-        id: user.id,
-        username: username,
-        email: email || "",
-      };
+      // const payload = {
+      //   id: user.id,
+      //   username: username,
+      //   email: email || "",
+      // };
 
-      const token = generateJWT(payload);
+      // const token = generateJWT(payload);
 
       await sendOtp({ email });
 
       res.status(200).send({
-        data: { token, userId: user.id },
+        // data: { token, userId: user.id },
         message: `Otp email sent to ${email}`,
       });
     } catch (err: any) {
@@ -129,7 +129,21 @@ export class AuthController {
             isEmailVerified: true,
           },
         });
-        res.status(200).send({ message: "Email verified." });
+
+        const payload = {
+          id: user.id,
+          username: user.username,
+          email: email || "",
+        };
+
+        const token = generateJWT(payload);
+
+        res.status(200).send({
+          data: {
+            token,
+          },
+          message: "Email verified.",
+        });
       } else {
         res.status(400).send({ message: "Invalid OTP" });
       }
@@ -172,12 +186,12 @@ export class AuthController {
         throw new AppError("User doesn't exists", 404);
       }
 
+      if (user.isEmailVerified === false)
+        throw new AppError("User email has not been verified yet!", 404);
+
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) {
-        // throw new Error("invalid credentials");
-        throw new AppError("Invalid credentials", 404);
-      }
+      if (!isPasswordValid) throw new AppError("Invalid credentials", 404);
 
       const payload = {
         id: user.id,

@@ -91,7 +91,7 @@ export class UserController {
       }
 
       const { action_type } = req.params;
-      if (action_type) {
+      if (action_type === "send_transaction") {
         const initiateTxn = await prisma.notification.create({
           data: {
             type: "send-transaction",
@@ -101,6 +101,8 @@ export class UserController {
         });
 
         res.status(200).send(initiateTxn);
+      } else {
+        res.status(404).send({ message: "invalid params" });
       }
     } catch (err: any) {
       next(err);
