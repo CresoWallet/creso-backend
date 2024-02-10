@@ -216,7 +216,7 @@ export class WalletController {
         throw new Error("fill the fields");
       }
 
-      let wallet = null;
+      let wallet:any = null;
       if (address) {
         wallet = await prisma.wallet.findFirst({
           where: {
