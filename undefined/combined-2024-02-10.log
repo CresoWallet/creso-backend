@@ -1,0 +1,5 @@
+{"level":"info","message":"server started on localhost:8080","service":"creso-api","timestamp":"2024-02-10T13:05:54.305Z"}
+{"level":"info","message":"::1 - - [10/Feb/2024:13:06:01 +0000] \"GET / HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0\"","service":"creso-api","timestamp":"2024-02-10T13:06:01.756Z"}
+{"level":"info","message":"server started on localhost:8080","service":"creso-api","timestamp":"2024-02-10T13:06:19.891Z"}
+{"level":"info","message":"::1 - - [10/Feb/2024:13:06:24 +0000] \"GET / HTTP/1.1\" 200 57 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0\"","service":"creso-api","timestamp":"2024-02-10T13:06:24.784Z"}
+{"level":"info","message":"::1 - - [10/Feb/2024:13:06:25 +0000] \"GET / HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0\"","service":"creso-api","timestamp":"2024-02-10T13:06:25.481Z"}
