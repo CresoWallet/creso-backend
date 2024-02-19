@@ -11,7 +11,7 @@ type ISaveWalletPayload = {
 };
 type ISaveSmartWalletDataPlayload = {
   walletName: string;
-  walletId: string;
+  wallets: string[];
   network: string;
   wallet: IWallet;
 };
@@ -48,23 +48,21 @@ export const getEOAWalletOfSmartWallet = async (
   address: string
 ) => {
   try {
-    const smartWallet = await prisma.smartWallet.findUnique({
-      where: {
-        address: address,
-      },
-      include: {
-        wallet: true, // Include the related Wallet
-      },
-    });
-
-    if (!smartWallet || !smartWallet.wallet) {
-      throw new Error("SmartWallet or related Wallet not found");
-    }
-    if (smartWallet.wallet.userId !== userId) {
-      throw new Error("unauthorized user");
-    }
-
-    return smartWallet.wallet;
+    // const smartWallet = await prisma.smartWallet.findUnique({
+    //   where: {
+    //     address: address,
+    //   },
+    //   include: {
+    //     wallet: true, // Include the related Wallet
+    //   },
+    // });
+    // if (!smartWallet || !smartWallet.wallet) {
+    //   throw new Error("SmartWallet or related Wallet not found");
+    // }
+    // if (smartWallet.wallet.userId !== userId) {
+    //   throw new Error("unauthorized user");
+    // }
+    // return smartWallet.wallet;
   } catch (error) {
     throw error;
   }
@@ -93,13 +91,13 @@ export const getAllWallets = async (userId: string) => {
           walletName: true,
           address: true,
 
-          smartWallets: {
-            select: {
-              walletName: true,
-              address: true,
-              network: true,
-            },
-          },
+          // smartWallets: {
+          //   select: {
+          //     walletName: true,
+          //     address: true,
+          //     network: true,
+          //   },
+          // },
         },
       },
     },
@@ -107,9 +105,9 @@ export const getAllWallets = async (userId: string) => {
 
   const smartWallets = [] as any;
 
-  result?.wallets.map(
-    (e) => e.smartWallets.length > 0 && smartWallets.push(e.smartWallets[0])
-  );
+  // result?.wallets.map(
+  //   (e) => e.smartWallets.length > 0 && smartWallets.push(e.smartWallets[0])
+  // );
 
   return {
     wallets: result?.wallets,
@@ -138,29 +136,29 @@ export const findUserByAddress = async (address: string) => {
         where: {
           address,
         },
-        select: {
-          walletId: true,
-        },
+        // select: {
+        //   walletId: true,
+        // },
       });
 
       if (!responseFromSmartWallet) {
         throw new Error("Wallet not found");
       }
 
-      const user = await prisma.wallet.findUnique({
-        where: {
-          id: responseFromSmartWallet.walletId,
-        },
-        select: {
-          userId: true,
-        },
-      });
+      // const user = await prisma.wallet.findUnique({
+      //   where: {
+      //     id: responseFromSmartWallet.walletId,
+      //   },
+      //   select: {
+      //     userId: true,
+      //   },
+      // });
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+      // if (!user) {
+      //   throw new Error("User not found");
+      // }
 
-      responseFromWallet = user;
+      // responseFromWallet = user;
     }
 
     return responseFromWallet;
@@ -169,18 +167,29 @@ export const findUserByAddress = async (address: string) => {
   }
 };
 
+export const getWalletOwners = async (address: string) => {
+  return await prisma.smartWallet.findUnique({
+    where: {
+      address,
+    },
+    select: {
+      wallets: true,
+    },
+  });
+};
+
 export const getSmartWalletByAddress = async (address: string) => {
   return await prisma.smartWallet.findFirst({
     where: {
       address,
     },
-    include: {
-      wallet: {
-        // select: {
-        //   privateKey: true,
-        // },
-      },
-    },
+    // include: {
+    //   wallet: {
+    //     // select: {
+    //     //   privateKey: true,
+    //     // },
+    //   },
+    // },
   });
 };
 
@@ -217,7 +226,7 @@ export const saveWalletInDatabase = async ({
 
 export const saveSmartWalletInDatabase = async ({
   walletName,
-  walletId,
+  wallets,
   wallet,
   network,
 }: ISaveSmartWalletDataPlayload) => {
@@ -226,12 +235,19 @@ export const saveSmartWalletInDatabase = async ({
       walletName,
       address: wallet.address,
       salt: wallet.salt,
-
-      wallet: {
-        connect: {
-          id: walletId,
-        },
-      },
+      wallets,
+      // wallet: {
+      //   // connect: {
+      //   //   id: walletId,
+      //   // },
+      //   // connect: walletId.map((wallitet: any) => ({ id: wallitet })),
+      //   // connect: { id: "1" },
+      //   connect: walletConnectInput,
+      // },
+      // wallet: walletConnectInput,
+      // wallet: {
+      //   connect: ["1", "2"],
+      // },
       network,
     },
   });

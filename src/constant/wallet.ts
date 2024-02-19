@@ -12,6 +12,8 @@ export const DEFAULT_NETWORK = "ethereum";
 
 export const ETHERSCAN_PROVIDER_KEY = process.env.ETHERSCAN_PROVIDER_KEY || "";
 
+export const ENTRYPOINT = "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789";
+
 export const RPC_LINKS = {
   MAIN: {
     ETHEREUM: "https://mainnet.infura.io/v3/a0b74d65173042fabe9639289bd336b5",

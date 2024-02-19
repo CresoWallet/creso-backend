@@ -2,6 +2,7 @@ import { generateSalt } from "../../utils/wallet";
 import { IEncryptedData } from "../../utils/encrpt";
 import {
   IProviderName,
+  getCresoWalletContract,
   getSignerWallet,
   getWalletFactoryContract,
 } from "./main";
@@ -12,6 +13,8 @@ import {
   ETHERSCAN_PROVIDER_KEY,
   RPC_LINKS,
 } from "../../constant";
+import { prisma } from "../prisma";
+import AppError from "../../errors/app";
 
 export interface IWallet {
   // privateKey: string;
@@ -112,4 +115,32 @@ export const getWalletBalance = async (
   const balance = ethers.utils.formatEther(balanceInWei);
 
   return balance;
+};
+
+export const getThreshold = async (address: string) => {
+  try {
+    const { isDeployed, contract } = await getCresoWalletContract(address);
+
+    let threshold;
+    if (isDeployed === "0x" || !isDeployed) {
+      const { wallets }: any = await prisma.smartWallet.findUnique({
+        where: {
+          address: address,
+        },
+        select: {
+          wallets: true,
+        },
+      });
+
+      if (!wallets) throw new AppError("Couldn't find owners", 404);
+
+      threshold = Math.round(wallets.length / 2);
+    } else {
+      threshold = await contract.threshold();
+    }
+
+    return threshold;
+  } catch (error) {
+    throw new Error(error.reason);
+  }
 };

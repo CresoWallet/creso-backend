@@ -9,6 +9,7 @@ import {
 import clWalletFactoryJson from "../../data/contract/CLWalletFactory.json";
 import clWalletJson from "../../data/contract/CLWallet.json";
 import entryPointJson from "../../data/contract/EntryPoint.json";
+import walletJson from "../../data/contract/Wallet.json";
 import { IEncryptedData, decryptKey } from "../../utils/encrpt";
 
 export type IProviderName = "ethereum" | "goerli" | "mumbai";
@@ -70,6 +71,17 @@ export const getWalletFactoryContract = (network: IProviderName) => {
 // export const getWalletContract = (wallet: ethers.Wallet, address: string) => {
 //   return new ethers.Contract(address, clWalletJson.abi, wallet);
 // };
+
+export const getCresoWalletContract = async (address: string) => {
+  //TODO : need to get network
+  const provider = getProvider("mumbai");
+  const isDeployed = await provider.getCode(address);
+  return {
+    isDeployed,
+    contract: new ethers.Contract(address, walletJson.abi, provider),
+  };
+  // return new ethers.Contract(address, walletJson.abi, provider);
+};
 
 export const getWalletContract = (address: string) => {
   //TODO : need to get network

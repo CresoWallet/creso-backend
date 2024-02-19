@@ -20,6 +20,7 @@ import {
   getHistroy,
   getInternalTransactions,
   getSignerWallet,
+  getThreshold,
   getTokenBlnce,
   getTransactionsById,
   getWalletBalance,
@@ -220,7 +221,7 @@ export class WalletController {
       const smartWallets = wallets.smartWallets;
 
       await Promise.all(
-        mainWallets!.map(async (e) => await getHistroy(e.address, network))
+        mainWallets!.map(async (e: any) => await getHistroy(e.address, network))
       )
         .then((result) => {
           history.push(result.flat());
@@ -296,32 +297,35 @@ export class WalletController {
         throw new Error("fill the fields");
       }
 
-      let wallet = null;
-      if (address) {
-        wallet = await prisma.wallet.findFirst({
-          where: {
-            userId: req.user.id,
-            address,
+      const wallet = await prisma.wallet.findMany({
+        where: {
+          address: {
+            in: address,
           },
-        });
-      } else {
-        wallet = await getMainWallet(req.user.id);
-      }
+        },
+        select: {
+          address: true,
+          userId: true,
+        },
+      });
 
-      //TODO: we can create wallet if we can't find it
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      const foundedAddress = wallet.map((item: any) => item.address);
+
+      // TODO: we can create wallet if we can't find it
+      // if (!wallet) {
+      //   throw new Error("no wallet");
+      // }
 
       const createdSmartWallet = await createAAWallet(
-        address,
+        // address,
         // wallet.privateKey as IEncryptedData,
+        foundedAddress,
         network
       );
 
       const saveWalletPayload = {
         walletName: walletName,
-        walletId: wallet.id,
+        wallets: foundedAddress,
         wallet: createdSmartWallet,
         network,
       };
@@ -331,6 +335,7 @@ export class WalletController {
 
       return res.status(200).send(savedWallet);
     } catch (err) {
+      console.log(err);
       next(err);
     }
   }
@@ -423,7 +428,20 @@ export class WalletController {
       const receipt =
         type === "EOA" ? await transfer(payload) : await transferAA(payload);
 
-      return res.status(200).send(receipt);
+      // if (type === "AA") {
+      //   await prisma.transaction.create({
+      //     data: {
+      //       useropHash: receipt.useropHash,
+      //       data: receipt.data,
+      //       type: type,
+      //       from: from,
+      //       to: sendTo,
+      //       amount,
+      //     },
+      //   });
+      // }
+
+      // return res.status(200).send("Transaction initiated");
 
       // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)}
       // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
@@ -534,15 +552,15 @@ export class WalletController {
         walletAddress
       );
 
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      // if (!wallet) {
+      //   throw new Error("no wallet");
+      // }
 
-      const signerWallet = getSignerWallet(
-        // wallet.privateKey as IEncryptedData,
-        wallet.address,
-        network
-      );
+      // const signerWallet = getSignerWallet(
+      //   // wallet.privateKey as IEncryptedData,
+      //   wallet.address,
+      //   network
+      // );
 
       const response = await findUserByAddress(guardian);
 
@@ -576,7 +594,7 @@ export class WalletController {
       //   text: `The ${guardian} wallet address has been added to the list of guardians for the ${walletAddress} address.`,
       // });
 
-      await addGuardian(signerWallet, walletAddress, guardian);
+      // await addGuardian(signerWallet, walletAddress, guardian);
 
       await prisma.guardian.create({
         data: {
@@ -628,17 +646,17 @@ export class WalletController {
         req.user.id,
         walletAddress
       );
-      if (!wallet) {
-        throw new Error("no wallet");
-      }
+      // if (!wallet) {
+      //   throw new Error("no wallet");
+      // }
 
-      const signerWallet = getSignerWallet(
-        // wallet.privateKey as IEncryptedData,
-        wallet.address,
-        network
-      );
+      // const signerWallet = getSignerWallet(
+      //   // wallet.privateKey as IEncryptedData,
+      //   wallet.address,
+      //   network
+      // );
 
-      const tx = await removeGuardian(signerWallet, walletAddress, guardian);
+      // const tx = await removeGuardian(signerWallet, walletAddress, guardian);
 
       await prisma.guardian.deleteMany({
         where: {
@@ -647,7 +665,7 @@ export class WalletController {
         },
       });
 
-      return res.status(200).send(tx);
+      return res.status(200).send("tx");
     } catch (err) {
       next(err);
     }
@@ -781,16 +799,16 @@ export class WalletController {
       const trueCount = confirmations.filter((value) => value).length;
       const falseCount = confirmations.filter((value) => !value).length;
 
-      if (trueCount > falseCount) {
-        const res = await prisma.smartWallet.update({
-          where: {
-            address: walletAddress,
-          },
-          data: {
-            walletId: getWalletResponse.id,
-          },
-        });
-      }
+      // if (trueCount > falseCount) {
+      //   const res = await prisma.smartWallet.update({
+      //     where: {
+      //       address: walletAddress,
+      //     },
+      //     data: {
+      //       walletId: getWalletResponse.id,
+      //     },
+      //   });
+      // }
 
       return res.status(200).send(tx);
     } catch (err) {
@@ -809,17 +827,17 @@ export class WalletController {
         req.user.id,
         walletAddress
       );
-      if (!wallet) throw new Error("no wallet");
+      // if (!wallet) throw new Error("no wallet");
 
-      const signerWallet = getSignerWallet(
-        // wallet.privateKey as IEncryptedData,
-        wallet.address,
-        network
-      );
+      // const signerWallet = getSignerWallet(
+      //   // wallet.privateKey as IEncryptedData,
+      //   wallet.address,
+      //   network
+      // );
 
-      const tx = await cancelRecovery(signerWallet, walletAddress);
+      // const tx = await cancelRecovery(signerWallet, walletAddress);
 
-      return res.status(200).send(tx);
+      return res.status(200).send("tx");
     } catch (err) {
       next(err);
     }
@@ -916,19 +934,19 @@ export class WalletController {
         walletAddress
       );
 
-      if (!wallet) throw new Error("no wallet");
+      // if (!wallet) throw new Error("no wallet");
 
-      const signerWallet = getSignerWallet(
-        // wallet.privateKey as IEncryptedData,
-        wallet.address,
-        network
-      );
+      // const signerWallet = getSignerWallet(
+      //   // wallet.privateKey as IEncryptedData,
+      //   wallet.address,
+      //   network
+      // );
 
-      const tx = await getRecoveryStatus(signerWallet, walletAddress);
+      // const tx = await getRecoveryStatus(signerWallet, walletAddress);
 
-      console.log("tx : ", tx);
+      // console.log("tx : ", tx);
 
-      return res.status(200).send(tx);
+      return res.status(200).send("tx");
     } catch (err) {
       next(err);
     }
@@ -953,6 +971,70 @@ export class WalletController {
   public async testApi(req: Request, res: Response, next: NextFunction) {
     try {
       return res.status(200).send({ message: "test" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async signTransaction(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const { transaction_id } = req.params;
+      const { signature } = req.body;
+
+      const txn = await prisma.transaction.findUnique({
+        where: {
+          id: transaction_id,
+          transactionStatus: 0,
+        },
+      });
+
+      if (!txn) {
+        throw new AppError("Transaction not found", 404);
+      }
+
+      // update signature
+      await prisma.transaction.update({
+        where: {
+          id: transaction_id,
+        },
+        data: {
+          signatures: {
+            push: [signature],
+          },
+        },
+      });
+
+      const threshold = await getThreshold(txn.from);
+
+      const { signatures }: any = await prisma.transaction.findUnique({
+        where: {
+          id: transaction_id,
+        },
+        select: {
+          signatures: true,
+        },
+      });
+
+      console.log("threshold : ", threshold);
+      console.log("sign : ", signatures.length);
+
+      if (signatures.length >= threshold) {
+        console.log("execute");
+        return res.status(200).send("executre");
+      }
+
+      console.log("still in sign");
+      console.log("threshold : ", threshold);
+
+      return res.status(200).send("updateTxn");
     } catch (err) {
       next(err);
     }

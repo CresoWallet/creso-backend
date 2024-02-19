@@ -37,7 +37,8 @@ model Wallet {
   userId       String        @db.ObjectId
   device       Device?        @relation(fields: [deviceId], references: [id])   
   deviceId     String?        @db.ObjectId
-  smartWallets SmartWallet[]
+  // smartWallets SmartWallet[]
+  smartWallet  String[]
 }
 
 model SmartWallet {
@@ -46,8 +47,9 @@ model SmartWallet {
   address    String @unique
   salt       String @unique
   network    String @default("ethereum")
-  wallet     Wallet @relation(fields: [walletId], references: [id])
-  walletId   String @db.ObjectId
+  // wallet     Wallet @relation(fields: [walletId], references: [id])
+  // walletId   String @db.ObjectId
+  wallets    String[]
   guardians  Guardian[] 
 }
 
@@ -102,6 +104,19 @@ model Notification{
   type                 String
   transactionStatus    String?
   transactionId        String?       @unique
+}
+
+model Transaction{
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt            DateTime      @default(now())
+  useropHash           String
+  data                 Json?
+  type                 String        @default("aa") // eoa,aa
+  transactionStatus    Int           @default(0) // 0 -pending , 1-execute
+  signatures           String[]
+  from                 String
+  to                   String
+  amount               String
 }
 
 

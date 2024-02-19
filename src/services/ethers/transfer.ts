@@ -8,15 +8,34 @@ import {
   getWalletContract,
   getWalletFactoryAddress,
 } from "./main";
-import { Client, Presets } from "userop";
-import { getSmartWalletByAddress } from "../prisma/wallet";
+import { Client, Presets, UserOperationBuilder } from "userop";
+import { getSmartWalletByAddress, getWalletOwners } from "../prisma/wallet";
 import { IEncryptedData } from "../../utils/encrpt";
 import { prisma } from "../prisma";
 import { ERC20ABI } from "../../utils/ethers";
+import {
+  CRESO_WALLETFACTORY_ADDRESS,
+  ENTRYPOINT,
+  RPC_LINKS,
+} from "../../constant";
+import clWalletFactoryJson from "../../data/contract/CLWalletFactory.json";
+import clWalletJson from "../../data/contract/CLWallet.json";
+import { getGasValues, getUserOpHash } from "../../utils/transfers";
+import { getThreshold } from "./wallet";
 
 export interface ITransferPayload {
   userId: string;
   sendTo: string;
+  amount: string; // The amount of ETH to send as a string, e.g., "0.1"
+  from: string;
+  network: IProviderName;
+  standard: "native" | "stable";
+  tokenAddress: string;
+}
+
+export interface IExecutionPayload {
+  sender: string;
+  hexNonce: string;
   amount: string; // The amount of ETH to send as a string, e.g., "0.1"
   from: string;
   network: IProviderName;
@@ -80,76 +99,204 @@ export async function transferAA({
   standard,
   tokenAddress,
 }: ITransferPayload) {
-  // try {
+  const wallets = await getSmartWalletByAddress(from);
 
-  const wallet = await getSmartWalletByAddress(from);
+  const owners = wallets?.wallets;
+  const salt = wallets?.salt;
 
-  if (!wallet) throw new Error("no from wallet found");
-
-  const signer = getSignerWallet(
-    // wallet.wallet.privateKey as IEncryptedData,
-    wallet.wallet.address,
-    network
+  const provider = new ethers.providers.JsonRpcProvider(
+    "https://public.stackup.sh/api/v1/node/polygon-mumbai"
   );
-  const value = ethers.utils.parseEther(amount);
 
-  const simpleAccount = await Presets.Builder.SimpleAccount.init(
-    signer,
-    getBundlerRPC(network),
-    {
-      entryPoint: getEntryPointAddress(network),
-      factory: getWalletFactoryAddress(network),
-      salt: wallet.salt,
-    }
+  const crescoFactoryContract = new ethers.Contract(
+    CRESO_WALLETFACTORY_ADDRESS,
+    clWalletFactoryJson.abi,
+    provider
   );
-  const client = await Client.init(getBundlerRPC(network), {
-    entryPoint: getEntryPointAddress(network),
+
+  const crescoInterface = ethers.Contract.getInterface(clWalletJson.abi);
+
+  const client = await Client.init(RPC_LINKS.TEST.MUMBAI, {
+    entryPoint: ENTRYPOINT,
   });
 
-  let txData = {
-    to: sendTo,
-    value,
-    data: "0x",
-  };
+  // const sender = await crescoFactoryContract.getAddress(owners, salt);
+  const sender = from;
 
-  if (standard === "stable") {
-    const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
+  // const balance = await provider.getBalance(sender);
 
-    const data = tokenContract.interface.encodeFunctionData("transfer", [
-      sendTo,
-      value,
+  const nonce = await client.entryPoint.getNonce(sender, 0);
+  const hexNonce = nonce.toHexString();
+  let initCode = "0x";
+
+  const feeData = await provider.getFeeData();
+  const isDeployed = await provider.getCode(sender);
+
+  let maxFeePerGas = feeData.maxFeePerGas!.toHexString(); //"10000000000";
+  let maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!.toHexString(); //"10000000000";
+  if (isDeployed === "0x" || !isDeployed) {
+    initCode = ethers.utils.hexConcat([
+      CRESO_WALLETFACTORY_ADDRESS,
+      crescoFactoryContract.interface.encodeFunctionData("createAccount", [
+        owners,
+        salt,
+      ]),
     ]);
-    txData.to = tokenAddress;
-    txData.value = ethers.constants.Zero;
-    txData.data = data;
-
-    // const calls = [
-    //     {
-    //         to: tokenAddress,
-    //         value: ethers.constants.Zero,
-    //         data: data
-    //     }
-    // ];
   }
 
-  // const target = ethers.utils.getAddress(t);
-  const res = await client.sendUserOperation(
-    simpleAccount.execute(txData.to, txData.value, txData.data),
-    {
-      onBuild: (op) => console.log("Signed UserOperation:", op),
-    }
+  const calldata = crescoInterface.encodeFunctionData("execute", [
+    sendTo, //to,
+    "1", //value,
+    "0x", //data
+  ]);
+
+  const testSignature =
+    "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+  let testSignatures = [];
+
+  const threshold = await getThreshold(from);
+
+  for (let i = 0; i < threshold; i++) {
+    testSignatures.push(testSignature);
+  }
+
+  let encodedTestSignatures = ethers.utils.solidityPack(
+    ["bytes[]"],
+    [testSignatures]
   );
-  //   console.log(`UserOpHash: ${res.userOpHash}`);
-  //   console.log("Waiting for transaction...");
-  const ev = await res.wait();
-  //   console.log(`Transaction hash: ${ev?.transactionHash ?? null}`);
-  return ev;
 
-  // } catch (err) {
-  //     console.log(err)
+  const gas = await getGasValues(
+    sender,
+    hexNonce,
+    initCode,
+    calldata,
+    "0x989680",
+    "0x989680",
+    "90000",
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    "0x",
+    encodedTestSignatures
+  );
 
+  const callGasLimit = gas.callGasLimit;
+  const verificationGasLimit = gas.verificationGasLimit;
+  const preVerificationGas = gas.preVerificationGas;
+
+  const { useropHash, data } = getUserOpHash(
+    sender,
+    hexNonce,
+    initCode,
+    calldata,
+    callGasLimit,
+    verificationGasLimit,
+    preVerificationGas,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    "0x"
+  );
+
+  return { useropHash, data };
+
+  // try {
+  // const wallet = await getSmartWalletByAddress(from);
+
+  // if (!wallet) throw new Error("no from wallet found");
+
+  // const signer = getSignerWallet(
+  //   // wallet.wallet.privateKey as IEncryptedData,
+  //   "wallet.wallet.address",
+  //   network
+  // );
+  // const value = ethers.utils.parseEther(amount);
+
+  // const simpleAccount = await Presets.Builder.SimpleAccount.init(
+  //   signer,
+  //   getBundlerRPC(network),
+  //   {
+  //     entryPoint: getEntryPointAddress(network),
+  //     factory: getWalletFactoryAddress(network),
+  //     salt: wallet.salt,
+  //   }
+  // );
+  // const client = await Client.init(getBundlerRPC(network), {
+  //   entryPoint: getEntryPointAddress(network),
+  // });
+
+  // let txData = {
+  //   to: sendTo,
+  //   value,
+  //   data: "0x",
+  // };
+
+  // if (standard === "stable") {
+  //   const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
+
+  //   const data = tokenContract.interface.encodeFunctionData("transfer", [
+  //     sendTo,
+  //     value,
+  //   ]);
+  //   txData.to = tokenAddress;
+  //   txData.value = ethers.constants.Zero;
+  //   txData.data = data;
+
+  //   // const calls = [
+  //   //     {
+  //   //         to: tokenAddress,
+  //   //         value: ethers.constants.Zero,
+  //   //         data: data
+  //   //     }
+  //   // ];
   // }
+
+  // // const target = ethers.utils.getAddress(t);
+  // const res = await client.sendUserOperation(
+  //   simpleAccount.execute(txData.to, txData.value, txData.data),
+  //   {
+  //     onBuild: (op) => console.log("Signed UserOperation:", op),
+  //   }
+  // );
+  // //   console.log(`UserOpHash: ${res.userOpHash}`);
+  // //   console.log("Waiting for transaction...");
+  // const ev = await res.wait();
+  // //   console.log(`Transaction hash: ${ev?.transactionHash ?? null}`);
+  // return ev;
+
+  // // } catch (err) {
+  // //     console.log(err)
+
+  // // }
 }
+
+// export async function executeAATransaction({
+//   sender,
+//   hexNonce,
+//   network,
+//   amount,
+//   sendTo,
+//   standard,
+//   tokenAddress,
+// }: ITransferPayload) {
+//   const builder = new UserOperationBuilder()
+//     .setSender(sender)
+//     .setNonce(hexNonce)
+//     .setInitCode(initCode)
+//     .setCallData(calldata)
+//     .setCallGasLimit(callGasLimit)
+//     .setVerificationGasLimit(verificationGasLimit)
+//     .setPreVerificationGas(preVerificationGas)
+//     .setMaxFeePerGas(maxFeePerGas)
+//     .setMaxPriorityFeePerGas(maxPriorityFeePerGas)
+//     .setPaymasterAndData("0x")
+//     .setSignature(encodedSignatures);
+//   const result = await client.sendUserOperation(builder);
+//   const event = await result.wait();
+//   if (event) {
+//     console.log("Event: ", event);
+//     const transactionHash = event.transactionHash;
+//     console.log("Transaction Hash: ", transactionHash);
+//   }
+// }
 
 // export async function transferEthUsingBundler(signer: ethers.Wallet, fromAddress: string, toAddress: string, amount: string) {
 

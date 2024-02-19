@@ -43,6 +43,12 @@ router.get(
 // router.post("/transfer", authenticateJwt, walletController.makeTransfer);
 router.post("/transactions", authenticateJwt, walletController.makeTransfer);
 
+router.post(
+  "/sign_transaction/:transaction_id",
+  authenticateJwt,
+  walletController.signTransaction
+);
+
 router.get(
   "/transactions/:transaction_id",
   authenticateJwt,
