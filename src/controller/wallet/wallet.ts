@@ -17,6 +17,7 @@ import {
   ITransferPayload,
   createAAWallet,
   createEOAWallet,
+  executeTransaction,
   getHistroy,
   getInternalTransactions,
   getSignerWallet,
@@ -1000,6 +1001,10 @@ export class WalletController {
         throw new AppError("Transaction not found", 404);
       }
 
+      //check wether user already signed or not
+      if (txn.signatures.includes(signature))
+        throw new AppError("User already signed", 404);
+
       // update signature
       await prisma.transaction.update({
         where: {
@@ -1023,18 +1028,18 @@ export class WalletController {
         },
       });
 
-      console.log("threshold : ", threshold);
-      console.log("sign : ", signatures.length);
-
       if (signatures.length >= threshold) {
-        console.log("execute");
-        return res.status(200).send("executre");
+        let allSignatures = [];
+
+        for (let i = 0; i < signatures.length; i++) {
+          allSignatures.push(signatures[i]);
+        }
+
+        const result = await executeTransaction(txn.data, allSignatures);
+        return res.status(200).send(result);
+      } else {
+        return res.status(200).send("updateTxn");
       }
-
-      console.log("still in sign");
-      console.log("threshold : ", threshold);
-
-      return res.status(200).send("updateTxn");
     } catch (err) {
       next(err);
     }

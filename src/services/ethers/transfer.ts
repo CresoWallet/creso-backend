@@ -441,6 +441,54 @@ export async function transferETHFromSmartWallet(
   }
 }
 
+export async function executeTransaction(data: any, allSignatures: string[]) {
+  const {
+    sender,
+    hexNonce,
+    initCode,
+    calldata,
+    callGasLimit,
+    verificationGasLimit,
+    preVerificationGas,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+  } = data;
+
+  const encodedSignatures = ethers.utils.solidityPack(
+    ["bytes[]"],
+    [allSignatures]
+  );
+
+  const client = await Client.init(RPC_LINKS.TEST.MUMBAI, {
+    entryPoint: ENTRYPOINT,
+  });
+
+  try {
+    const builder = new UserOperationBuilder()
+      .setSender(sender)
+      .setNonce(hexNonce)
+      .setInitCode(initCode)
+      .setCallData(calldata)
+      .setCallGasLimit(callGasLimit)
+      .setVerificationGasLimit(verificationGasLimit)
+      .setPreVerificationGas(preVerificationGas)
+      .setMaxFeePerGas(maxFeePerGas)
+      .setMaxPriorityFeePerGas(maxPriorityFeePerGas)
+      .setPaymasterAndData("0x")
+      .setSignature(encodedSignatures);
+    const result = await client.sendUserOperation(builder);
+    const event = await result.wait();
+    if (event) {
+      console.log("Event: ", event);
+      const transactionHash = event.transactionHash;
+      console.log("Transaction Hash: ", transactionHash);
+      return transactionHash;
+    }
+  } catch (error) {
+    throw new Error("Couldn't execute the transaction");
+  }
+}
+
 // const client = await Client.init(BUNDLER_RPC_URL, {
 //     entryPoint: ENTRY_POINT_ADDRESSS,
 //     //overrideBundlerRpc:

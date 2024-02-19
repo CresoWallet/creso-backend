@@ -1,6 +1,7 @@
 import { encryptKey } from "../../utils/encrpt";
 import { prisma } from "./main";
 import { IWallet } from "../ethers";
+import AppError from "../../errors/app";
 
 type ISaveWalletPayload = {
   userId: string;
@@ -265,4 +266,24 @@ export const changeWalletHolder = async (
       userId: newHolder,
     },
   });
+};
+
+export const checkOwner = async (
+  smartWalletAddress: string,
+  walletAddress: string
+) => {
+  const { wallets }: any = await prisma.smartWallet.findUnique({
+    where: {
+      address: smartWalletAddress,
+    },
+    select: {
+      wallets: true,
+    },
+  });
+
+  if (!wallets) {
+    throw new AppError("Couldn't find wallet", 404);
+  }
+
+  return wallets.includes(walletAddress);
 };
