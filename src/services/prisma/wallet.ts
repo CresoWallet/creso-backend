@@ -287,3 +287,27 @@ export const checkOwner = async (
 
   return wallets.includes(walletAddress);
 };
+
+export const getUserEmailFromOwners = async (address: string) => {
+  const { wallets }: any = await prisma.smartWallet.findUnique({
+    where: {
+      address,
+    },
+    select: {
+      wallets: true,
+    },
+  });
+
+  const users = await prisma.wallet.findMany({
+    where: {
+      address: {
+        in: wallets,
+      },
+    },
+    select: {
+      user: true,
+    },
+  });
+
+  return users.map((e) => e.user.email);
+};

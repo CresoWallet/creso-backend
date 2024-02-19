@@ -156,7 +156,7 @@ export async function transferAA({
 
   const threshold = await getThreshold(from);
 
-  for (let i = 0; i < threshold; i++) {
+  for (let i = 0; i <= threshold; i++) {
     testSignatures.push(testSignature);
   }
 

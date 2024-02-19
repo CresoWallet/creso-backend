@@ -12,6 +12,7 @@ import {
   getSmartWalletByAddress,
   changeWalletHolder,
   addDeviceInCreateWallet,
+  getUserEmailFromOwners,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -429,20 +430,31 @@ export class WalletController {
       const receipt =
         type === "EOA" ? await transfer(payload) : await transferAA(payload);
 
-      // if (type === "AA") {
-      //   await prisma.transaction.create({
-      //     data: {
-      //       useropHash: receipt.useropHash,
-      //       data: receipt.data,
-      //       type: type,
-      //       from: from,
-      //       to: sendTo,
-      //       amount,
-      //     },
-      //   });
-      // }
+      if (type === "AA") {
+        const userEmails = await getUserEmailFromOwners(from);
 
-      // return res.status(200).send("Transaction initiated");
+        const txn = await prisma.transaction.create({
+          data: {
+            useropHash: receipt.useropHash,
+            data: receipt.data,
+            type: type,
+            from: from,
+            to: sendTo,
+            amount,
+          },
+        });
+
+        const emailResponse = await sendEmail({
+          receivers: userEmails,
+          template_name: "request-transaction-approval",
+          txnId: txn.id,
+        });
+        if (emailResponse) {
+          res.status(200).send({
+            message: "Mail has been sent ",
+          });
+        }
+      }
 
       // if (type === "EOA") {const receipt = await transfer(payload)return res.status(200).send(receipt)}
       // else if (type === "AA") {const receipt = await transferAA(payload)eturn res.status(200).send(receipt)
@@ -456,7 +468,13 @@ export class WalletController {
     try {
       const { transaction_id } = req.params;
 
-      const txn = await getTransactionsById(transaction_id);
+      // const txn = await getTransactionsById(transaction_id);
+
+      const txn = await prisma.transaction.findUnique({
+        where: {
+          id: transaction_id,
+        },
+      });
 
       return res.status(200).send(txn);
     } catch (err) {
@@ -1036,6 +1054,21 @@ export class WalletController {
         }
 
         const result = await executeTransaction(txn.data, allSignatures);
+
+        const userEmails = await getUserEmailFromOwners(txn.from);
+
+        const emailResponse = await sendEmail({
+          receivers: userEmails,
+          template_name: "transaction-executed",
+          txnId: transaction_id,
+        });
+
+        if (emailResponse) {
+          res.status(200).send({
+            message: "A mail has been sent ",
+          });
+        }
+
         return res.status(200).send(result);
       } else {
         return res.status(200).send("updateTxn");

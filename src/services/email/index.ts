@@ -118,12 +118,12 @@ const getMessage = async (messagePayload: IMessage) => {
   } else if (template_name === "request-transaction-approval") {
     message = {
       subject: "Requesting approval for transaction",
-      text: `Requesting approval for transaction. please accept the invitation on main device ${platform}`,
+      text: `Requesting approval for transaction. please accept the invitation on main device ${txnId}`,
       to: receiversArray,
       global_merge_vars: [
         {
-          name: "devices",
-          content: platform,
+          name: "txnId",
+          content: txnId,
         },
       ],
     };
