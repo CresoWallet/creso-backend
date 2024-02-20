@@ -26,5 +26,5 @@ services:
       - USER_EMAIL=${USER_EMAIL}
       - EMAIL_ACCESS_PASSWORD=${EMAIL_ACCESS_PASSWORD}
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
-    volumes:
+    # volumes:
       # - ${LOG_DIR}:/usr/src/app/logs

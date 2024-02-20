@@ -10,7 +10,7 @@ import clWalletFactoryJson from "../../data/contract/CLWalletFactory.json";
 import clWalletJson from "../../data/contract/CLWallet.json";
 import entryPointJson from "../../data/contract/EntryPoint.json";
 import walletJson from "../../data/contract/Wallet.json";
-import { IEncryptedData, decryptKey } from "../../utils/encrpt";
+// import { IEncryptedData, decryptKey } from "../../utils/encrpt";
 
 export type IProviderName = "ethereum" | "goerli" | "mumbai";
 
