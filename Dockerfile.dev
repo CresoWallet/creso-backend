@@ -16,7 +16,7 @@ COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma/
 COPY package*.json ./
 COPY .env.example ./
-COPY .env ./
+# COPY .env ./
 ENV NODE_ENV=development
 RUN npm install --only=production
 RUN npx prisma generate
