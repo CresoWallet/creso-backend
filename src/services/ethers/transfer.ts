@@ -146,7 +146,7 @@ export async function transferAA({
 
   const calldata = crescoInterface.encodeFunctionData("execute", [
     sendTo, //to,
-    "1", //value,
+    ethers.utils.parseUnits(amount), //value,
     "0x", //data
   ]);
 
@@ -459,9 +459,14 @@ export async function executeTransaction(data: any, allSignatures: string[]) {
     [allSignatures]
   );
 
-  const client = await Client.init(RPC_LINKS.TEST.MUMBAI, {
-    entryPoint: ENTRYPOINT,
-  });
+  // console.log("encodedSignatures : ", encodedSignatures);
+
+  const client = await Client.init(
+    "https://api.stackup.sh/v1/node/6526fd245f4a5a1236cfaa9b2ac99b4298ebbc4d1d1acb9b13e47b8eccc96f5a",
+    {
+      entryPoint: ENTRYPOINT,
+    }
+  );
 
   try {
     const builder = new UserOperationBuilder()
@@ -479,7 +484,7 @@ export async function executeTransaction(data: any, allSignatures: string[]) {
     const result = await client.sendUserOperation(builder);
     const event = await result.wait();
     if (event) {
-      console.log("Event: ", event);
+      // console.log("Event: ", event);
       const transactionHash = event.transactionHash;
       console.log("Transaction Hash: ", transactionHash);
       return transactionHash;

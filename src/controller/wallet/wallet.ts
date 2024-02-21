@@ -1053,7 +1053,16 @@ export class WalletController {
           allSignatures.push(signatures[i]);
         }
 
-        const result = await executeTransaction(txn.data, allSignatures);
+        await executeTransaction(txn.data, allSignatures);
+
+        await prisma.transaction.update({
+          where: {
+            id: transaction_id,
+          },
+          data: {
+            transactionStatus: 1,
+          },
+        });
 
         const userEmails = await getUserEmailFromOwners(txn.from);
 
@@ -1068,8 +1077,6 @@ export class WalletController {
             message: "A mail has been sent ",
           });
         }
-
-        return res.status(200).send(result);
       } else {
         return res.status(200).send("updateTxn");
       }
