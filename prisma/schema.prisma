@@ -111,7 +111,7 @@ model Transaction{
   createdAt            DateTime      @default(now())
   useropHash           String
   data                 Json?
-  type                 String        @default("aa") // eoa,aa
+  type                 String        @default("AA") // EOA,AA
   transactionStatus    Int           @default(0) // 0 -pending , 1-execute
   signatures           String[]
   from                 String

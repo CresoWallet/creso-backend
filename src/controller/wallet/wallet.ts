@@ -136,6 +136,14 @@ export class WalletController {
       if (!walletName || !walletAddress)
         throw new Error("Please enter wallet name and wallet address");
 
+      const isContract = await isContractAddress(walletAddress);
+
+      if (isContract) {
+        throw new Error(
+          "Please enter a valid address. This address is not an EOA address!"
+        );
+      }
+
       const result = await detectDevice(req, res, next);
 
       if (!result) throw new Error("couldn't find a device");
@@ -335,7 +343,10 @@ export class WalletController {
       //saving wallet to database
       const savedWallet = await saveSmartWalletInDatabase(saveWalletPayload);
 
-      return res.status(200).send(savedWallet);
+      return res.status(200).send({
+        data: savedWallet,
+        message: "Successfully created AA wallet",
+      });
     } catch (err) {
       console.log(err);
       next(err);
@@ -462,6 +473,62 @@ export class WalletController {
     } catch (err) {
       next(err);
     }
+  }
+
+  public async initiateAction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { action_type } = req.params;
+
+      if (action_type === "send_transaction") {
+        if (!req.user) {
+          throw new Error("error");
+        }
+
+        const { sendTo, amount, from, network, tokenAddress } = req.body;
+
+        //validation
+        if (!from) {
+          throw new Error("invalid request");
+        }
+
+        const payload: ITransferPayload = {
+          userId: req.user.id,
+          sendTo,
+          amount,
+          from,
+          network,
+          standard: "native",
+          tokenAddress: "",
+        };
+
+        const receipt = await transferAA(payload);
+
+        const userEmails = await getUserEmailFromOwners(from);
+
+        const txn = await prisma.transaction.create({
+          data: {
+            useropHash: receipt.useropHash,
+            data: receipt.data,
+            from: from,
+            to: sendTo,
+            amount,
+          },
+        });
+
+        const emailResponse = await sendEmail({
+          receivers: userEmails,
+          template_name: "request-transaction-approval",
+          txnId: txn.id,
+        });
+        if (emailResponse) {
+          res.status(200).send({
+            message: "Mail has been sent ",
+          });
+        }
+      } else {
+        throw new Error("invalid action type!");
+      }
+    } catch (error) {}
   }
 
   public async getTxnDetails(req: Request, res: Response, next: NextFunction) {
