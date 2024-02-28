@@ -22,6 +22,7 @@ import clWalletFactoryJson from "../../data/contract/CLWalletFactory.json";
 import clWalletJson from "../../data/contract/CLWallet.json";
 import { getGasValues, getUserOpHash } from "../../utils/transfers";
 import { getThreshold } from "./wallet";
+import AppError from "../../errors/app";
 
 export interface ITransferPayload {
   userId: string;
@@ -60,7 +61,10 @@ export const transfer = async ({
     },
   });
   if (!wallet) {
-    throw new Error("couldn't find the wallet");
+    throw new AppError(
+      `couldn't find the wallet, Please provide a valid address`,
+      404
+    );
   }
 
   // const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network);
@@ -100,6 +104,13 @@ export async function transferAA({
   tokenAddress,
 }: ITransferPayload) {
   const wallets = await getSmartWalletByAddress(from);
+
+  if (!wallets) {
+    throw new AppError(
+      `couldn't find the wallet, Please provide a valid address`,
+      404
+    );
+  }
 
   const owners = wallets?.wallets;
   const salt = wallets?.salt;
