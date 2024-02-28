@@ -31,17 +31,30 @@ export const getMainWallet = async (userId: string) => {
   // };
 };
 
-export const getAllWallet = async (userId: string) => {
+export const getEoaWallets = async (userId: string) => {
   return await prisma.wallet.findMany({
     where: {
       userId: userId,
     },
+    select: {
+      walletName: true,
+      address: true,
+    },
   });
+};
 
-  // return {
-  //     wallets: result?.wallets,
-  //     smartWallets: result?.smartWallets
-  // };
+export const getSmartWalletsByEOA = async (walletAddress: string) => {
+  return await prisma.smartWallet.findMany({
+    where: {
+      wallets: {
+        has: walletAddress,
+      },
+    },
+    select: {
+      walletName: true,
+      address: true,
+    },
+  });
 };
 
 export const getEOAWalletOfSmartWallet = async (

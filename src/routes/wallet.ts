@@ -7,6 +7,14 @@ const walletController: WalletController = new WalletController();
 
 router.get("/wallet", authenticateJwt, walletController.getWallet);
 
+router.get("/wallets/eoa", authenticateJwt, walletController.getEOAWallets);
+
+router.get(
+  "/wallets/aa/:address",
+  authenticateJwt,
+  walletController.getAAWallets
+);
+
 // router.post("/create/wallet", authenticateJwt, walletController.createWallet);
 
 router.post("/wallets/eoa", authenticateJwt, walletController.createWallet);

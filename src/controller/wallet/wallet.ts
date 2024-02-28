@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import {
   getAllWallets,
   getEOAWalletOfSmartWallet,
-  getAllWallet,
+  getEoaWallets,
   prisma,
   saveSmartWalletInDatabase,
   saveWalletInDatabase,
@@ -13,6 +13,7 @@ import {
   changeWalletHolder,
   addDeviceInCreateWallet,
   getUserEmailFromOwners,
+  getSmartWalletsByEOA,
 } from "../../services/prisma";
 import {
   ITransferPayload,
@@ -69,6 +70,38 @@ export class WalletController {
       next(err);
     }
   }
+
+  public async getEOAWallets(req: Request, res: Response, next: NextFunction) {
+    console.log("wallets : ");
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const wallets = await getEoaWallets(req.user.id);
+
+      return res.status(200).send(wallets);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  public async getAAWallets(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new Error("error");
+      }
+
+      const { address } = req.params;
+
+      const wallets = await getSmartWalletsByEOA(address);
+
+      return res.status(200).send(wallets);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
   public async backupWallet(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) {
@@ -76,7 +109,7 @@ export class WalletController {
       }
       const { passkey } = req.body;
 
-      const wallets = await getAllWallet(req.user.id);
+      const wallets = await getEoaWallets(req.user.id);
 
       if (wallets.length <= 0) {
         throw new Error("no main wallet");
