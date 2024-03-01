@@ -89,7 +89,10 @@ export class AuthController {
   }
 
   public async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    req.body = { ...req.body, email: req.body.email.toLowerCase() };
+
     const { otp, email } = req.body;
+
     // const email = req.user?.email;
 
     try {
@@ -387,6 +390,8 @@ export class AuthController {
 
     //TODO : Do with a propper way
     const emaill = email?.toLowerCase();
+
+    console.log("email : ", email);
 
     try {
       const user = await prisma.user.findUnique({
