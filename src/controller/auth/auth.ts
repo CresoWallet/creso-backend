@@ -306,68 +306,79 @@ export class AuthController {
   }
 
   public async sendOTPMail(req: Request, res: Response, next: NextFunction) {
-    const { username, email }: any = req.user;
-
-    // TODO: Do with a propper way
-    const emaill = email.toLowerCase();
-
-    if (!email) {
-      throw new Error("Please provide a valid email!");
-    }
-    // const transporter = getTransporter();
-
-    // const otp: any = await generatedOTP();
-    const otp: any = 7849;
-
-    // const mailOptions = getMailOptions({
-    //   to: email as any,
-    //   subject: "OTP verification",
-    //   text: `Here is the verification code. Please copy it and verify your Email ${otp}`,
-    // });
-
+    const { email } = req.body;
     try {
-      await prisma.verification.upsert({
-        where: {
-          email: emaill,
-        },
-        update: {
-          otp: +otp,
-          expireAt: new Date(new Date().getTime() + 5 * 60000),
-        },
-        create: {
-          email: emaill,
-          otp: +otp,
-          expireAt: new Date(new Date().getTime() + 5 * 60000),
-        },
-      });
+      // const email = req.user?.email;
 
-      // send email
-      // transporter.sendMail(mailOptions, function (error, info) {
-      //   if (error) {
-      //     res.status(400).send({ message: "Error sending OTP email" });
-      //   } else {
-      //     res.status(200).send({
-      //       message: "A OTP mail has been sent ",
-      //     });
-      //   }
-      // });
-
-      // const receivers = ["mnnasik7@gmail.com"];
-
-      const emailResponse = await sendEmail({
-        receivers: [email],
-        template_name: "otp-email",
-        otp,
-        receiverName: username,
-      });
-      if (emailResponse) {
-        res.status(200).send({
-          message: "A OTP mail has been sent ",
-        });
-      }
-    } catch (error: any) {
+      if (!email) throw new AppError("User doesn't have email", 404);
+      await sendOtp({ email });
+      res.status(200).send({ message: "Email sent." });
+    } catch (error) {
       next(error);
     }
+    // const { username, email }: any = req.user;
+
+    // // TODO: Do with a propper way
+    // const emaill = email.toLowerCase();
+
+    // if (!email) {
+    //   throw new Error("Please provide a valid email!");
+    // }
+    // // const transporter = getTransporter();
+
+    // // const otp: any = await generatedOTP();
+    // const otp: any = 7849;
+
+    // // const mailOptions = getMailOptions({
+    // //   to: email as any,
+    // //   subject: "OTP verification",
+    // //   text: `Here is the verification code. Please copy it and verify your Email ${otp}`,
+    // // });
+
+    // try {
+    //   await prisma.verification.upsert({
+    //     where: {
+    //       email: emaill,
+    //     },
+    //     update: {
+    //       otp: +otp,
+    //       expireAt: new Date(new Date().getTime() + 5 * 60000),
+    //     },
+    //     create: {
+    //       email: emaill,
+    //       otp: +otp,
+    //       expireAt: new Date(new Date().getTime() + 5 * 60000),
+    //     },
+    //   });
+
+    //   // send email
+    //   // transporter.sendMail(mailOptions, function (error, info) {
+    //   //   if (error) {
+    //   //     res.status(400).send({ message: "Error sending OTP email" });
+    //   //   } else {
+    //   //     res.status(200).send({
+    //   //       message: "A OTP mail has been sent ",
+    //   //     });
+    //   //   }
+    //   // });
+
+    //   // const receivers = ["mnnasik7@gmail.com"];
+
+    //   const emailResponse = await sendEmail({
+    //     receivers: [email],
+    //     template_name: "otp-email",
+    //     otp,
+    //     receiverName: username,
+    //   });
+    //   if (emailResponse) {
+    //     res.status(200).send({
+    //       message: "A OTP mail has been sent ",
+    //     });
+    //   }
+    // }
+    // catch (error: any) {
+    //   next(error);
+    // }
   }
 
   public async verifyOTP(req: Request, res: Response, next: NextFunction) {

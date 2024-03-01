@@ -17,16 +17,19 @@ export const sendOtp = async ({ email }: ISendOtp) => {
   try {
     const otp: any = await generatedOTP();
 
+    //TODO : Do with a propper way
+    const emaill = email.toLowerCase();
+
     await prisma.verification.upsert({
       where: {
-        email: email,
+        email: emaill,
       },
       update: {
         otp: +otp,
         expireAt: new Date(new Date().getTime() + 5 * 60000),
       },
       create: {
-        email,
+        email: emaill,
         otp: +otp,
         expireAt: new Date(new Date().getTime() + 5 * 60000),
       },
