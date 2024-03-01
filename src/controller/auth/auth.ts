@@ -308,6 +308,9 @@ export class AuthController {
   public async sendOTPMail(req: Request, res: Response, next: NextFunction) {
     const { username, email }: any = req.user;
 
+    // TODO: Do with a propper way
+    const emaill = email.toLowerCase();
+
     if (!email) {
       throw new Error("Please provide a valid email!");
     }
@@ -325,14 +328,14 @@ export class AuthController {
     try {
       await prisma.verification.upsert({
         where: {
-          email: email,
+          email: emaill,
         },
         update: {
           otp: +otp,
           expireAt: new Date(new Date().getTime() + 5 * 60000),
         },
         create: {
-          email,
+          email: emaill,
           otp: +otp,
           expireAt: new Date(new Date().getTime() + 5 * 60000),
         },
@@ -371,10 +374,13 @@ export class AuthController {
     const { otp } = req.body;
     const email = req.user?.email;
 
+    //TODO : Do with a propper way
+    const emaill = email?.toLowerCase();
+
     try {
       const user = await prisma.user.findUnique({
         where: {
-          email,
+          email: emaill,
         },
       });
 
@@ -388,7 +394,7 @@ export class AuthController {
 
       const verification = await prisma.verification.findUnique({
         where: {
-          email,
+          email: emaill,
         },
       });
 
@@ -402,7 +408,7 @@ export class AuthController {
         user.isEmailVerified = true;
         await prisma.user.update({
           where: {
-            email: email,
+            email: emaill,
           },
           data: {
             isEmailVerified: true,
