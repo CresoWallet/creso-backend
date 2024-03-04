@@ -251,10 +251,12 @@ export class AuthController {
       // }); // Sets it as a cookie
       // res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
 
-      res.status(200).send({
-        data: { token, userId: user.id },
-        message: "Successfully logged in",
-      });
+      res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
+
+      // res.status(200).send({
+      //   data: { token, userId: user.id },
+      //   message: "Successfully logged in",
+      // });
     } catch (error) {
       res.status(500).send({
         message: "error",
