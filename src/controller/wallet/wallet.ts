@@ -352,7 +352,9 @@ export class WalletController {
         },
       });
 
-      const foundedAddress = wallet.map((item: any) => item.address);
+      const foundedAddress = [
+        ...new Set(wallet.map((item: any) => item.address)),
+      ];
 
       // TODO: we can create wallet if we can't find it
       // if (!wallet) {
