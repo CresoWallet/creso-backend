@@ -17,7 +17,7 @@ router.get(
 
 // router.post("/create/wallet", authenticateJwt, walletController.createWallet);
 
-router.post("/wallets/eoa", authenticateJwt, walletController.createWallet);
+router.post("/wallet/eoa", authenticateJwt, walletController.createWallet);
 
 // router.post(
 //   "/create/smartwallet",
@@ -25,10 +25,10 @@ router.post("/wallets/eoa", authenticateJwt, walletController.createWallet);
 //   walletController.createSmartWallet
 // );
 
-router.post("/wallets/aa", authenticateJwt, walletController.createSmartWallet);
+router.post("/wallet/aa", authenticateJwt, walletController.createSmartWallet);
 
 router.post(
-  "/wallets/import",
+  "/wallet/import",
   authenticateJwt,
   walletController.importExistingWallet
 );
