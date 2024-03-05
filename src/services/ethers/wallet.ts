@@ -61,9 +61,13 @@ export const getHistroy = async (
   address: string,
   network: IProviderName
 ): Promise<ethers.providers.TransactionResponse[]> => {
-  let etherscanProvider = new ethers.providers.EtherscanProvider(network);
+  try {
+    let etherscanProvider = new ethers.providers.EtherscanProvider(network);
 
-  return await etherscanProvider.getHistory(address);
+    return await etherscanProvider.getHistory(address);
+  } catch (error) {
+    throw new Error(error.reason);
+  }
 };
 
 export const getInternalTransactions = async (
