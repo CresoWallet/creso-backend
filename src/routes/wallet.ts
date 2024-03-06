@@ -41,7 +41,7 @@ router.post("/history", authenticateJwt, walletController.getHistory);
 //   walletController.getAssetBalance
 // );
 
-router.get("/wallets/:address/balance", walletController.getAssetBalance);
+router.get("/wallet/:address/balance", walletController.getAssetBalance);
 
 router.get(
   "/wallets/:address/transactions",

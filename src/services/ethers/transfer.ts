@@ -53,44 +53,48 @@ export const transfer = async ({
   standard,
   tokenAddress,
 }: ITransferPayload) => {
-  //get the fromWallet
-  const wallet = await prisma.wallet.findFirst({
-    where: {
-      userId: userId,
-      address: from,
-    },
-  });
-  if (!wallet) {
-    throw new AppError(
-      `couldn't find the wallet, Please provide a valid address`,
-      404
-    );
-  }
+  try {
+    //get the fromWallet
+    const wallet = await prisma.wallet.findFirst({
+      where: {
+        userId: userId,
+        address: from,
+      },
+    });
+    if (!wallet) {
+      throw new AppError(
+        `couldn't find the wallet, Please provide a valid address`,
+        404
+      );
+    }
 
-  // const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network);
-  const signer = getSignerWallet(wallet.address, network);
+    // const signer = getSignerWallet(wallet.privateKey as IEncryptedData, network);
+    const signer = getSignerWallet(wallet.address, network);
 
-  //TODO: add some validation
-  const value = ethers.utils.parseEther(amount);
+    //TODO: add some validation
+    const value = ethers.utils.parseEther(amount);
 
-  if (standard === "stable") {
-    const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
+    if (standard === "stable") {
+      const tokenContract = new Contract(tokenAddress, ERC20ABI, signer);
 
-    const txResponse = await tokenContract.transfer(sendTo, value);
-    const receipt = await txResponse.wait(); // Wait for the transaction to be mined
-    return receipt;
-  } else {
-    const transaction = {
-      to: sendTo,
-      value: value,
-    };
+      const txResponse = await tokenContract.transfer(sendTo, value);
+      const receipt = await txResponse.wait(); // Wait for the transaction to be mined
+      return receipt;
+    } else {
+      const transaction = {
+        to: sendTo,
+        value: value,
+      };
 
-    // Send the transaction
-    const txResponse = await signer.sendTransaction(transaction);
-    //TODO: if need to be more response. can send this to client side
-    // and wait for it from client side
-    const receipt = await txResponse.wait(); // Wait for the transaction to be mined
-    return receipt;
+      // Send the transaction
+      const txResponse = await signer.sendTransaction(transaction);
+      //TODO: if need to be more response. can send this to client side
+      // and wait for it from client side
+      const receipt = await txResponse.wait(); // Wait for the transaction to be mined
+      return receipt;
+    }
+  } catch (error) {
+    throw new Error(error.reason);
   }
 };
 
