@@ -21,14 +21,27 @@ export const stackupProvider = new ethers.providers.JsonRpcProvider(
 
 export const getProvider = (network: IProviderName) => {
   switch (network) {
-    case "goerli":
-      return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.GOERLI);
+    // case "goerli":
+    //   return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.GOERLI);
     case "ethereum":
       return new ethers.providers.JsonRpcProvider(RPC_LINKS.MAIN.ETHEREUM);
     case "mumbai":
       return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.MUMBAI);
     default:
-      return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.MUMBAI);
+      return "Invalid Network";
+    // return new ethers.providers.JsonRpcProvider(RPC_LINKS.TEST.MUMBAI);
+  }
+};
+
+export const getExplorer = (network: string) => {
+  switch (network) {
+    case "ethereum":
+      return new ethers.providers.EtherscanProvider(network);
+    case "mumbai":
+      // return new ethers.providers.PolygonScanProvider(network);
+      return new ethers.providers.JsonRpcProvider("https://polygon-rpc.com");
+    default:
+      return "Invalid Network";
   }
 };
 
@@ -49,6 +62,11 @@ export const getSignerWallet = (
 ) => {
   // const privateKey = decryptKey(pk);
   const provider = getProvider(providerName);
+
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   return new ethers.Wallet(publicKey, provider);
 };
 
@@ -61,6 +79,11 @@ export const getSignerWallet = (
 // };
 export const getWalletFactoryContract = (network: IProviderName) => {
   const provider = getProvider(network);
+
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   return new ethers.Contract(
     CRESO_WALLETFACTORY_ADDRESS,
     clWalletFactoryJson.abi,
@@ -75,6 +98,11 @@ export const getWalletFactoryContract = (network: IProviderName) => {
 export const getCresoWalletContract = async (address: string) => {
   //TODO : need to get network
   const provider = getProvider("mumbai");
+
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   const isDeployed = await provider.getCode(address);
   return {
     isDeployed,
@@ -86,6 +114,11 @@ export const getCresoWalletContract = async (address: string) => {
 export const getWalletContract = (address: string) => {
   //TODO : need to get network
   const provider = getProvider("mumbai");
+
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   return new ethers.Contract(address, clWalletJson.abi, provider);
 };
 
@@ -96,6 +129,11 @@ export const getWalletContract = (address: string) => {
 export const getEntryPointContract = () => {
   //TODO : need to get network
   const provider = getProvider("mumbai");
+
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   return new ethers.Contract(
     ENTRY_POINT_ADDRESSS,
     entryPointJson.abi,

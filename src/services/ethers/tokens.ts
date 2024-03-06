@@ -16,6 +16,10 @@ export const getTokenBlnce = async ({
 }: ITokenBlnce) => {
   const provider = getProvider(network);
 
+  if (provider === "Invalid Network") {
+    throw new Error("Invalid Network!");
+  }
+
   const tokenContract = new ethers.Contract(token_address, tokenAbi, provider);
 
   const balance = await tokenContract.balanceOf(address);

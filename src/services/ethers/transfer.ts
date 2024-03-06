@@ -410,8 +410,14 @@ export async function transferETHFromSmartWallet(
     // Convert amount to wei
     const amountInWei = ethers.utils.parseEther(amount);
 
+    const provider = getProvider(networkName);
+
+    if (provider === "Invalid Network") {
+      throw new Error("Invalid Network!");
+    }
+
     // Estimate the gas price
-    const gasPrice = await getProvider(networkName).getGasPrice();
+    const gasPrice = await provider.getGasPrice();
 
     // Estimate the gas limit for the transaction
     const gasLimit = await smartWalletContract.estimateGas.execute(
@@ -421,7 +427,7 @@ export async function transferETHFromSmartWallet(
     );
 
     // Make sure the smart wallet has enough balance to cover the transfer and the gas cost
-    const balance = await getProvider(networkName).getBalance(from);
+    const balance = await provider.getBalance(from);
     if (balance.lt(amountInWei.add(gasPrice.mul(gasLimit)))) {
       throw new Error(
         "The smart wallet does not have enough balance to cover the transfer and gas costs."

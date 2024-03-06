@@ -69,7 +69,7 @@ router.get(
 );
 
 router.get(
-  "/tokens/:address/balance/:token_address",
+  "/token/:address/balance/:token_address",
   authenticateJwt,
   walletController.getTokenBalance
 );

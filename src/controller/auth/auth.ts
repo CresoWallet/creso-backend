@@ -194,7 +194,7 @@ export class AuthController {
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) throw new AppError("Invalid credentials", 404);
+      if (!isPasswordValid) throw new AppError("Invalid Password!", 401);
 
       const payload = {
         id: user.id,
