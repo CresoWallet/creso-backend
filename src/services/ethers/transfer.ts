@@ -416,9 +416,9 @@ export async function transferETHFromSmartWallet(
 
     const provider = getProvider(networkName);
 
-    if (provider === "Invalid Network") {
-      throw new Error("Invalid Network!");
-    }
+    // if (provider === "Invalid Network") {
+    //   throw new Error("Invalid Network!");
+    // }
 
     // Estimate the gas price
     const gasPrice = await provider.getGasPrice();

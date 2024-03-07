@@ -3,10 +3,12 @@ import { IEncryptedData } from "../../utils/encrpt";
 import {
   IProviderName,
   getCresoWalletContract,
+  getExplorer,
+  getProvider,
   getSignerWallet,
   getWalletFactoryContract,
 } from "./main";
-import { Wallet, ethers } from "ethers";
+import { Wallet, ethers, providers } from "ethers";
 import axios from "axios";
 import {
   ENTRY_POINT_ADDRESSS,
@@ -63,6 +65,7 @@ export const getHistroy = async (
 ): Promise<ethers.providers.TransactionResponse[]> => {
   try {
     let etherscanProvider = new ethers.providers.EtherscanProvider(network);
+    // let explorer = getExplorer(network);
 
     return await etherscanProvider.getHistory(address);
   } catch (error) {
@@ -112,10 +115,11 @@ export const getTransactionsById = async (txnHash: string) => {
 };
 export const getWalletBalance = async (
   walletAddress: string,
-  network: string
+  network: IProviderName
 ) => {
-  let etherscanProvider = new ethers.providers.EtherscanProvider(network);
-  const balanceInWei = await etherscanProvider.getBalance(walletAddress);
+  // let etherscanProvider = new ethers.providers.EtherscanProvider(network);
+  const provider = getProvider(network);
+  const balanceInWei = await provider.getBalance(walletAddress);
   const balance = ethers.utils.formatEther(balanceInWei);
 
   return balance;
