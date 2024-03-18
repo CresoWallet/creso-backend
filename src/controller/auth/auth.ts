@@ -69,18 +69,18 @@ export class AuthController {
       // //saving wallet to database
       // await saveSmartWalletInDatabase(saveWSmartalletPayload);
 
-      // const payload = {
-      //   id: user.id,
-      //   username: username,
-      //   email: email || "",
-      // };
+      const payload = {
+        id: user.id,
+        username: username,
+        email: email || "",
+      };
 
-      // const token = generateJWT(payload);
+      const token = generateJWT(payload);
 
       await sendOtp({ email });
 
       res.status(200).send({
-        // data: { token, userId: user.id },
+        data: { token, userId: user.id },
         message: `Otp email sent to ${email}`,
       });
     } catch (err: any) {
@@ -184,17 +184,15 @@ export class AuthController {
         },
       });
 
-      if (!user || !user.password) {
-        // throw new Error("user doesn't exists");
+      if (!user || !user.password)
         throw new AppError("User doesn't exists", 404);
-      }
-
-      if (user.isEmailVerified === false)
-        throw new AppError("User email has not been verified yet!", 404);
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) throw new AppError("Wrong Password", 202);
+      if (!isPasswordValid) throw new AppError("Wrong Password", 401);
+
+      // if (user.isEmailVerified === false)
+      //   throw new AppError("User email has not been verified yet!", 403);
 
       const payload = {
         id: user.id,
@@ -218,7 +216,12 @@ export class AuthController {
       // res.status(200).send("Logged in successfully");
 
       res.status(200).send({
-        data: { token, userId: user.id },
+        data: {
+          token,
+          userId: user.id,
+          isEmailVerified: user.isEmailVerified,
+          userEmail: user.email,
+        },
         message: "Successfully logged in",
       });
     } catch (err: any) {
@@ -387,13 +390,11 @@ export class AuthController {
   }
 
   public async verifyOTP(req: Request, res: Response, next: NextFunction) {
-    const { otp } = req.body;
-    const email = req.user?.email;
+    const { otp, email } = req.body;
+    // const email = req.user?.email;
 
     //TODO : Do with a propper way
     const emaill = email?.toLowerCase();
-
-    console.log("email : ", email);
 
     try {
       const user = await prisma.user.findUnique({
