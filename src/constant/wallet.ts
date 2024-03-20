@@ -20,7 +20,7 @@ export const RPC_LINKS = {
   },
   TEST: {
     GOERLI: "https://goerli.infura.io/v3/a0b74d65173042fabe9639289bd336b5",
-    MUMBAI: "https://rpc-mumbai.maticvigil.com",
+    MUMBAI: "https://polygon-mumbai.blockpi.network/v1/rpc/public",
   },
 };
 export const BUNDLER_RPC_URL =
