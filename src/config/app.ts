@@ -16,6 +16,7 @@ const allowedOrigins = [
   "https://wallet-x-beta.vercel.app",
   "https://app.creso.io",
   "localhost/127.0.0.1:8080",
+  "https://creso-app-nextjs-main-version.vercel.app/",
 ];
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
