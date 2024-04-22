@@ -13,6 +13,7 @@ export const authenticateJwt = async (
 ) => {
   try {
     const authHeader = req.headers["authorization"];
+    console.log("\x1b[33m%s\x1b[0m", "authHeader : ", authHeader);
     const token = authHeader && authHeader.split(" ")[1];
     let user = (await verifyToken(token)) as IAuthUser;
     req.user = user;
@@ -39,6 +40,8 @@ export const verifyToken = (token: string | undefined) => {
       )) as jwt.JwtPayload;
       let payload = decodedPayload.payload as IAuthUser;
       // let user = await User.findById(payload.id);
+
+      console.log("payload : ", payload);
 
       const user = await prisma.user.findUnique({
         where: {
