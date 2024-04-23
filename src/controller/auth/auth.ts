@@ -169,10 +169,12 @@ export class AuthController {
   }
 
   public async login(req: Request, res: Response, next: NextFunction) {
+    console.log("\x1b[33m%s\x1b[0m", "this is authenticating...");
     try {
       req.body = { ...req.body, email: req.body.email.toLowerCase() };
 
       const { email, password } = req.body;
+
       if (!email || !password) {
         throw new AppError("Missing Fields", 404);
         //return new NextResponse('Missing Fields', { status: 400 })
@@ -254,12 +256,14 @@ export class AuthController {
       // }); // Sets it as a cookie
       // res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
 
-      res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
+      // res.redirect(CLIENT_URL + "/dashboard"); // Redirect to the frontend
+      res.redirect(`${CLIENT_URL}/dashboard?token=${token}`);
 
       // res.status(200).send({
       //   data: { token, userId: user.id },
       //   message: "Successfully logged in",
       // });
+      // res.json({ token });
     } catch (error) {
       res.status(500).send({
         message: "error",
@@ -503,6 +507,28 @@ export class AuthController {
     } catch (err: any) {
       next(err);
     }
+  }
+
+  public async generateJwt(req: Request, res: Response, next: NextFunction) {
+    req.body = { ...req.body, email: req.body.email.toLowerCase() };
+
+    const { email } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) throw new AppError("User doesn't exists!", 404);
+
+    const payload = {
+      id: user.id,
+      username: user.username,
+      email: user.email || "",
+    };
+
+    const token = generateJWT(payload);
   }
 
   // public async getAuthenticatedUser(req: Request, res: Response, next: NextFunction) {
