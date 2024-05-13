@@ -15,7 +15,8 @@ const allowedOrigins = [
   "https://creso-wallet.vercel.app",
   "https://wallet-x-beta.vercel.app",
   "https://creso-app-wnym6.ondigitalocean.app",
-  "https://app.creso.io"
+  "https://app.creso.io",
+  "https://creso-changes.onrender.com"
 ];
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
