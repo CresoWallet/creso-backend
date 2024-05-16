@@ -165,7 +165,7 @@ export async function transferAA({
     "0x", //data
   ]);
 
-  const testSignature =
+  const testSignature:any =
     "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
   let testSignatures = [];
 
