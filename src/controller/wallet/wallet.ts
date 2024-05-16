@@ -1147,7 +1147,7 @@ export class WalletController {
       });
 
       if (signatures.length >= threshold) {
-        let allSignatures = [];
+        let allSignatures :any = [];
 
         for (let i = 0; i < signatures.length; i++) {
           allSignatures.push(signatures[i]);
