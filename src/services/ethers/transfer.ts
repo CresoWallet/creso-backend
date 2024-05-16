@@ -167,7 +167,7 @@ export async function transferAA({
 
   const testSignature:any =
     "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
-  let testSignatures = [];
+  let testSignatures:any = [];
 
   const threshold = await getThreshold(from);
 

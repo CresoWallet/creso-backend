@@ -85,7 +85,7 @@ export const getRecoveryConfirmations = async (
 ) => {
   const smartWalletContract = getWalletContract(walletAddress);
 
-  var confirmedArray = [];
+  var confirmedArray:any = [];
   for (var i = 0; i < guardianAddresses.length; i++) {
     const recoveryConfirmation: any = await smartWalletContract.recoveryConfirmation(
       guardianAddresses[i]
