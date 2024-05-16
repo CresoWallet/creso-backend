@@ -18,7 +18,9 @@ const allowedOrigins = [
   "localhost/127.0.0.1:8080",
   "https://creso-app-nextjs-main-version.vercel.app",
   "https://creso-changes.onrender.com",
-  "https://beta.creso.io"
+  "https://beta.creso.io",
+  "https://creso-beta-khpyg.ondigitalocean.app",
+  "https://gamma.creso.io"
 ];
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
