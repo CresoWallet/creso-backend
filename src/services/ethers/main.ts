@@ -7,6 +7,7 @@ import {
   CRESO_WALLETFACTORY_ADDRESS,
 } from "../../constant";
 import clWalletFactoryJson from "../../data/contract/CLWalletFactory.json";
+import clWalletFactoryMainnetJson from "../../data/contract/CrescoWalletFactoryMainnet.json";
 import clWalletJson from "../../data/contract/CLWallet.json";
 import entryPointJson from "../../data/contract/EntryPoint.json";
 import walletJson from "../../data/contract/Wallet.json";
@@ -86,7 +87,8 @@ export const getWalletFactoryContract = (network: IProviderName) => {
 
   return new ethers.Contract(
     CRESO_WALLETFACTORY_ADDRESS,
-    clWalletFactoryJson.abi,
+    //clWalletFactoryJson.abi,
+    clWalletFactoryMainnetJson,
     provider
   );
 };
@@ -146,8 +148,8 @@ export const getContractInterface = (
 ) => {
   switch (type) {
     case "WALLET_FACTORY":
-      return new ethers.utils.Interface(clWalletFactoryJson.abi);
+      return new ethers.utils.Interface(clWalletFactoryMainnetJson);
     default:
-      return new ethers.utils.Interface(clWalletFactoryJson.abi);
+      return new ethers.utils.Interface(clWalletFactoryMainnetJson);
   }
 };
