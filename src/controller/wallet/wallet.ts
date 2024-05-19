@@ -338,6 +338,12 @@ export class WalletController {
         throw new Error("fill the fields");
       }
 
+      /**
+       * @dev Modifying code - Support for single owner wallet
+       * @NOTE THE MAINNET FACTORY CONTRACT SUPPORTS ONLY SINGLE OWNER WALLET
+       */
+      /*---------------------From Here---------------------*/
+      /* 
       const wallet = await prisma.wallet.findMany({
         where: {
           address: {
@@ -349,7 +355,7 @@ export class WalletController {
           userId: true,
         },
       });
-
+      
       const foundedAddress = [
         ...new Set(wallet.map((item: any) => item.address)),
       ];
@@ -364,18 +370,37 @@ export class WalletController {
         // wallet.privateKey as IEncryptedData,
         foundedAddress,
         network
-      );
+      ); */
+      /*---------------------To Here---------------------*/
+
+      let wallet;
+
+      if (address) {
+        wallet = await prisma.wallet.findFirst({
+          where: {
+            userId: req.user.id,
+            address,
+          },
+        });
+      } else {
+        wallet = await getMainWallet(req.user.id);
+      }
+
+      if (!wallet) {
+        throw new Error("No Wallet");
+      }
+      const createdSmartWallet = await createAAWallet(wallet.address, network);
 
       const saveWalletPayload = {
         walletName: walletName,
-        wallets: foundedAddress,
+        wallets: [wallet.address],
         wallet: createdSmartWallet,
         network,
       };
 
       //saving wallet to database
       const savedWallet = await saveSmartWalletInDatabase(saveWalletPayload);
-
+      console.log(savedWallet);
       return res.status(200).send({
         data: savedWallet,
         message: "Successfully created AA wallet",

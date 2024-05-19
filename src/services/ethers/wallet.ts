@@ -35,8 +35,14 @@ export const createEOAWallet = (): IWallet => {
     salt: mnemonic.phrase,
   };
 };
+
+/**
+ * @dev Modifying code - Support for single owner wallet
+ * @NOTE THE MAINNET FACTORY CONTRACT SUPPORTS ONLY SINGLE OWNER WALLET
+ */
 export const createAAWallet = async (
-  publicKey: string[],
+  //publicKey: string[],
+  publicKey: string,
   network: IProviderName
 ): Promise<IWallet> => {
   const salt = generateSalt();
