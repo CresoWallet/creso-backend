@@ -387,7 +387,7 @@ export class WalletController {
       }
 
       if (!wallet) {
-        throw new Error("No Wallet");
+        throw new Error("Invalid owner address");
       }
       const createdSmartWallet = await createAAWallet(wallet.address, network);
 
@@ -1172,7 +1172,7 @@ export class WalletController {
       });
 
       if (signatures.length >= threshold) {
-        let allSignatures :any = [];
+        let allSignatures: any = [];
 
         for (let i = 0; i < signatures.length; i++) {
           allSignatures.push(signatures[i]);

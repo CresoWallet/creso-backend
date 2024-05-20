@@ -12,6 +12,7 @@ export const SERVER_URL = process.env.SERVER_URL;
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3003",
   "https://creso-wallet.vercel.app",
   "https://wallet-x-beta.vercel.app",
   "https://app.creso.io",
@@ -20,7 +21,7 @@ const allowedOrigins = [
   "https://creso-changes.onrender.com",
   "https://beta.creso.io",
   "https://creso-beta-khpyg.ondigitalocean.app",
-  "https://gamma.creso.io"
+  "https://gamma.creso.io",
 ];
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,

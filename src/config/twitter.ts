@@ -19,11 +19,11 @@ passport.use(
     async (token, tokenSecret, profile, done) => {
       try {
         const user = await createSocialUser({
-          id: profile.id,
-          username: profile.username,
-          email: profile._json.email.toLowerCase(),
+          id: profile?.id,
+          username: profile?.username,
+          email: profile._json.email?.toLowerCase(),
           registrationMethod: "twitter",
-          isEmailVerified: false,
+          isEmailVerified: true,
         });
 
         done(null, user);
