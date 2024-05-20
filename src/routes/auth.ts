@@ -30,6 +30,7 @@ router.get("/auth/twitter", passportTwitter.authenticate("twitter"));
 router.get(
   "/auth/twitter/callback",
   passportTwitter.authenticate("twitter", {
+    successReturnToOrRedirect: '/',
     failureRedirect: "/login?error=twiiter",
   }),
   authController.socialLogin
