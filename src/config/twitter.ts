@@ -18,20 +18,13 @@ passport.use(
       scope: ["user_read", "user_write"],
 
     },
-    async (req, token, tokenSecret, profile, done) => {
+    async (token, tokenSecret, profile, done) => {
       console.log("Profile:///", profile);
-      console.log("....");
-      console.log("req", req);
-      console.log("....");
-      console.log("token",token);
-console.log("....");
-console.log("tokenSecret",tokenSecret);
-console.log("....");
       try {
         const user = await createSocialUser({
           id: profile?.id,
           username: profile?.username,
-          email: profile._json.email,
+          email: profile.emails[0]?.value,
           registrationMethod: "twitter",
           isEmailVerified: true,
         });
