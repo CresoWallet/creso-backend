@@ -28,7 +28,7 @@ passport.use(
           registrationMethod: "twitter",
           isEmailVerified: true,
         });
-
+      
         done(null, user);
       } catch (error) {
         done(error);
