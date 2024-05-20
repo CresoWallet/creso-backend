@@ -25,7 +25,13 @@ router.post("/logout", authController.logout);
 router.get("/authenticate", authenticateJwt, authController.authenticate);
 
 // TWITTER ROUTER //
-router.get("/auth/twitter", passportTwitter.authenticate("twitter"));
+router.get("/auth/twitter", (req, res, next)=>{
+  req.session.save((err) => {
+    if (err) return next(err);
+    passportTwitter.authenticate("twitter")(req, res, next);
+  });
+});
+
 router.get(
   "/auth/twitter/callback",
   passportTwitter.authenticate("twitter", {
