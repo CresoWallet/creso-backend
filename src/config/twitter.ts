@@ -15,6 +15,7 @@ passport.use(
       consumerSecret: TWITTER_CONSUMER_SECRET,
       callbackURL: TWITTER_CALLBACK,
       includeEmail: true,
+      passReqToCallback: true,
       scope: ["user_read", "user_write"],
 
     },
@@ -24,7 +25,7 @@ passport.use(
         const user = await createSocialUser({
           id: profile?.id,
           username: profile?.username,
-          email: profile.emails[0]?.value,
+          email: profile.emails[0]?.value || profile._json.email,
           registrationMethod: "twitter",
           isEmailVerified: true,
         });
