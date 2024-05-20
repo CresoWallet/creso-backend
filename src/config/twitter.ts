@@ -15,7 +15,6 @@ passport.use(
       consumerSecret: TWITTER_CONSUMER_SECRET,
       callbackURL: TWITTER_CALLBACK,
       includeEmail: true,
-      passReqToCallback: true,
       scope: ["user_read", "user_write"],
 
     },
