@@ -18,8 +18,15 @@ passport.use(
       scope: ["user_read", "user_write"],
 
     },
-    async (token, tokenSecret, profile, done) => {
+    async (req, token, tokenSecret, profile, done) => {
       console.log("Profile:///", profile);
+      console.log("....");
+      console.log("req", req);
+      console.log("....");
+      console.log("token",token);
+console.log("....");
+console.log("tokenSecret",tokenSecret);
+console.log("....");
       try {
         const user = await createSocialUser({
           id: profile?.id,
