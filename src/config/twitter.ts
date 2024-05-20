@@ -17,11 +17,12 @@ passport.use(
       includeEmail: true,
     },
     async (token, tokenSecret, profile, done) => {
+      console.log("Profile:///", profile);
       try {
         const user = await createSocialUser({
           id: profile.id,
           username: profile.username,
-          email: profile._json.email.toLowerCase(),
+          email: profile._json.email,
           registrationMethod: "twitter",
           isEmailVerified: false,
         });
