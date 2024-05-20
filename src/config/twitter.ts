@@ -31,6 +31,12 @@ passport.use(
       
         done(null, user);
       } catch (error) {
+        console.log(error);
+        if(error.message == "Failed to find request token in session"){
+          console.log("error", error);
+          window.location.reload();
+          
+        } 
         done(error);
       }
     }
