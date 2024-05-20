@@ -17,6 +17,7 @@ passport.use(
       includeEmail: true,
     },
     async (token, tokenSecret, profile, done) => {
+      console.log("Profile:///", profile);
       try {
         const user = await createSocialUser({
           id: profile?.id,
