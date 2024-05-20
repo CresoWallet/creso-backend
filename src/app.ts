@@ -34,7 +34,7 @@ export const createApp = () => {
     session({
       secret: "my serect dudee",
       resave: false,
-      saveUninitialized: false,
+      saveUninitialized: true,
       cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
     })
   );
