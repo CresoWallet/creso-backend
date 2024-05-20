@@ -117,15 +117,24 @@ export const getAllWallets = async (userId: string) => {
     },
   });
 
-  const smartWallets = [] as any;
+  const walletAddress = [] as any;
 
-  // result?.wallets.map(
-  //   (e) => e.smartWallets.length > 0 && smartWallets.push(e.smartWallets[0])
-  // );
+  result?.wallets.map(
+    // (e) => e.smartWallets.length > 0 && smartWallets.push(e.smartWallets[0])
+    (e) => e?.address && walletAddress.push(e.address)
+  );
+
+  const wallet = await prisma.smartWallet.findMany({
+    where: {
+      wallets: {
+        has: walletAddress[0],
+      },
+    },
+  });
 
   return {
     wallets: result?.wallets,
-    smartWallets,
+    smartWallets: wallet,
   };
 };
 
