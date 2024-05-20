@@ -39,7 +39,7 @@ export const createApp = () => {
     })
   );
   app.use(passport.initialize());
-  app.use(passport.session());
+  app.use(passport.session({ secret: 'Shhh.. This is a secret', cookie: { secure: true } }));
 
   //routers
   app.get("/", (req: Request, res: Response, next: NextFunction) => {
