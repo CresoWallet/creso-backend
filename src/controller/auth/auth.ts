@@ -233,7 +233,6 @@ export class AuthController {
 
   public async socialLogin(req: Request, res: Response) {
     try {
-      console.log("request data",req);
       const user = req.user;
       if (!user) {
         throw new Error("");
@@ -247,6 +246,7 @@ export class AuthController {
 console.log("token payload",payload);
       const token = generateJWT(payload);
 console.log("token",token);
+console.log("***************************");
       // const tokenExpiryTime = 24 * 60 * 60 * 60;
 
       // res.cookie(AUTH_TOKEN, token, {
