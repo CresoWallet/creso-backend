@@ -28,7 +28,7 @@ passport.use(
           registrationMethod: "twitter",
           isEmailVerified: true,
         });
-      
+      console.log("twitter user",user);
         done(null, user);
       } catch (error) {
         console.log(error);
