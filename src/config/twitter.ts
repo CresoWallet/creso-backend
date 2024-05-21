@@ -29,11 +29,12 @@ passport.use(
           isEmailVerified: true,
         });
       console.log("twitter user",user);
+console.log("************");
         done(null, user);
       } catch (error) {
-        console.log(error);
+        console.log("+++++++++++++",error);
         if(error.message == "Failed to find request token in session"){
-          console.log("error", error);
+          console.log("error log ***********", error);
           window.location.reload();
           
         } 
